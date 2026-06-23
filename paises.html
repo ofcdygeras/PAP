@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="pt-PT">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Países — Fora do Radar</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,700;1,300&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: { acid: '#b4ff00' },
+          fontFamily: {
+            display: ['"Bebas Neue"', 'sans-serif'],
+            body: ['"DM Sans"', 'sans-serif'],
+            mono: ['"Space Mono"', 'monospace'],
+          }
+        }
+      },
+      corePlugins: { preflight: false }
+    }
+  </script>
+  <link rel="stylesheet" href="style.css">
+
+  <style>
+    .pais-card {
+      transition: border-color .3s, transform .3s, box-shadow .3s;
+    }
+    .pais-card:hover {
+      transform: translateY(-8px);
+      border-color: rgba(180,255,0,.4) !important;
+      box-shadow: 0 20px 60px rgba(180,255,0,.15);
+    }
+    .pais-card:hover .card-shine { opacity: 1; }
+    .card-shine {
+      position: absolute; inset: 0; pointer-events: none; opacity: 0;
+      background: radial-gradient(circle at 60% 20%, rgba(180,255,0,.1), transparent 70%);
+      transition: opacity .3s;
+    }
+    .bandeira-wrap {
+      font-size: 64px;
+      line-height: 1;
+      filter: drop-shadow(0 4px 12px rgba(0,0,0,0.3));
+    }
+    .skeleton {
+      background: linear-gradient(90deg, rgba(255,255,255,.04) 25%, rgba(255,255,255,.08) 50%, rgba(255,255,255,.04) 75%);
+      background-size: 200% 100%;
+      animation: shimmer 1.4s infinite;
+      border-radius: 16px;
+    }
+    @keyframes shimmer { from { background-position: 200% 0; } to { background-position: -200% 0; } }
+    .fade-in { animation: fadeIn .4s ease forwards; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+  </style>
+</head>
+
+<body class="bg-[#060608] text-white font-body overflow-x-hidden">
+
+  <!-- NOISE -->
+  <div class="noise"></div>
+  <div class="bg-orb orb1"></div>
+  <div class="bg-orb orb2"></div>
+
+  <!-- HEADER -->
+  <header id="header" class="fixed top-0 left-0 w-full flex justify-between items-center px-[60px] py-[22px] bg-black/60 backdrop-blur-2xl border-b border-white/[0.07] z-[1000] transition-all duration-300">
+    <a href="index.html" class="logo flex items-center gap-[14px] no-underline">
+      <div class="radar-wrap"><div class="radar-ring r1"></div><div class="radar-ring r2"></div><div class="radar-dot"></div><div class="radar-sweep"></div></div>
+      <div class="logo-text flex flex-col leading-none">
+        <span class="font-mono text-[10px] tracking-[4px] text-white/50">FORA DO</span>
+        <span class="font-display text-[26px] tracking-[3px] text-white">RADAR</span>
+      </div>
+    </a>
+
+    <nav class="flex gap-9">
+      <a href="index.html" class="nav-link text-white/50 no-underline text-[13px] font-medium tracking-[1.5px] uppercase hover:text-acid transition-colors">Home</a>
+      <a href="paises.html" class="nav-link text-acid no-underline text-[13px] font-medium tracking-[1.5px] uppercase border-b border-acid pb-1">Países</a>
+      <a href="index.html#sobre" class="nav-link text-white/50 no-underline text-[13px] font-medium tracking-[1.5px] uppercase hover:text-acid transition-colors">Sobre</a>
+    </nav>
+
+    <div class="flex items-center gap-3">
+      <a href="auth.html" id="auth-btn" class="account-btn flex items-center gap-2 px-5 py-[10px] rounded-full border border-white/[0.07] bg-white/[0.04] text-white text-[13px] font-medium no-underline hover:border-acid hover:text-acid transition-all">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-[17px]"><path stroke-linecap="round" stroke-linejoin="round" d="M17.982 18.725A7.488 7.488 0 0012 15.75a7.488 7.488 0 00-5.982 2.975m11.963 0a9 9 0 10-11.963 0m11.963 0A8.966 8.966 0 0112 21a8.966 8.966 0 01-5.982-2.275" /></svg>
+        Entrar
+      </a>
+    </div>
+  </header>
+
+  <!-- PAGE HERO -->
+  <section class="pt-[160px] pb-[80px] px-[80px] relative z-[1]">
+    <div class="max-w-[700px]">
+      <p class="font-mono text-[11px] tracking-[4px] text-acid mb-4 block">EXPLORE · MUNDO · FUTEBOL</p>
+      <h1 class="font-display text-[80px] leading-[.92] tracking-[2px] mb-6">
+        TODOS OS<br><span class="text-acid">PAÍSES</span>
+      </h1>
+      <p class="text-white/50 text-[17px] leading-[1.8] max-w-[500px] mb-8">
+        Descobre o futebol de cada nação. Desde as potências tradicionais até aos países emergentes — cada bandeira conta uma história.
+      </p>
+
+      <!-- Barra de pesquisa -->
+      <div class="relative max-w-[480px]">
+        <svg class="absolute left-4 top-1/2 -translate-y-1/2 w-4 text-white/30" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z"/></svg>
+        <input id="search-input" type="text" placeholder="Pesquisar país..."
+          class="w-full bg-white/[0.05] border border-white/[0.08] rounded-full pl-11 pr-5 py-4 text-white text-[14px] placeholder-white/30 outline-none focus:border-acid/50 transition-colors font-body" />
+      </div>
+    </div>
+  </section>
+
+  <!-- CONTAGEM -->
+  <div class="px-[80px] mb-6 relative z-[1]">
+    <p class="font-mono text-[12px] tracking-[2px] text-white/30" id="count-label">A carregar países...</p>
+  </div>
+
+  <!-- GRID DE PAÍSES -->
+  <section class="px-[80px] pb-[120px] relative z-[1]">
+    <div id="paises-grid" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+      <!-- Skeletons -->
+      <div class="skeleton h-[200px]"></div>
+      <div class="skeleton h-[200px]"></div>
+      <div class="skeleton h-[200px]"></div>
+      <div class="skeleton h-[200px]"></div>
+      <div class="skeleton h-[200px]"></div>
+      <div class="skeleton h-[200px]"></div>
+      <div class="skeleton h-[200px]"></div>
+      <div class="skeleton h-[200px]"></div>
+    </div>
+
+    <!-- Estado vazio -->
+    <div id="empty-state" class="hidden text-center py-24">
+      <p class="font-display text-[60px] text-white/10 mb-4">NADA ENCONTRADO</p>
+      <p class="text-white/40 text-[15px]">Tenta outro termo de pesquisa.</p>
+    </div>
+  </section>
+
+  <!-- FOOTER -->
+  <footer class="border-t border-white/[0.07] px-[80px] py-10 relative z-[1]">
+    <div class="flex justify-between items-center">
+      <p class="font-mono text-[12px] text-white/20 tracking-[2px]">© 2026 FORA DO RADAR · PROJETO PAP</p>
+      <p class="font-mono text-[12px] text-white/20">O futebol que vive fora do mainstream.</p>
+    </div>
+  </footer>
+
+  <script type="module">
+    import { supabase, getPaises, initAuthHeader } from './supabase.js'
+
+    initAuthHeader()
+
+    // Scroll header
+    const header = document.getElementById('header')
+    window.addEventListener('scroll', () => {
+      header.style.background = window.scrollY > 60 ? 'rgba(6,6,8,0.95)' : 'rgba(6,6,8,0.6)'
+    }, { passive: true })
+
+    // Map de códigos de país para emojis de bandeiras
+    const flagEmojis = {
+      PT: '🇵🇹', ES: '🇪🇸', DE: '🇩🇪', FR: '🇫🇷', IT: '🇮🇹', GB: '🏴󠁧󠁢󠁥󠁮󠁧󠁿',
+      BR: '🇧🇷', AR: '🇦🇷', MX: '🇲🇽', US: '🇺🇸', JP: '🇯🇵', KR: '🇰🇷',
+      ID: '🇮🇩', FI: '🇫🇮', XK: '🇽🇰', IN: '🇮🇳', CZ: '🇨🇿', NL: '🇳🇱',
+      BE: '🇧🇪', CH: '🇨🇭', AT: '🇦🇹', PL: '🇵🇱', TR: '🇹🇷', EG: '🇪🇬',
+      NG: '🇳🇬', ZA: '🇿🇦', AU: '🇦🇺', CA: '🇨🇦', CO: '🇨🇴', CL: '🇨🇱',
+      PE: '🇵🇪', UY: '🇺🇾', CR: '🇨🇷', HN: '🇭🇳', SV: '🇸🇻', JM: '🇯🇲',
+      MA: '🇲🇦', TN: '🇹🇳', DZ: '🇩🇿', SN: '🇸🇳', GH: '🇬🇭', CM: '🇨🇲',
+      IR: '🇮🇷', SA: '🇸🇦', QA: '🇶🇦', AE: '🇦🇪', TH: '🇹🇭', VN: '🇻🇳',
+      MY: '🇲🇾', PH: '🇵🇭', CN: '🇨🇳', RU: '🇷🇺', UA: '🇺🇦', SE: '🇸🇪',
+      NO: '🇳🇴', DK: '🇩🇰', PT: '🇵🇹'
+    }
+
+    let todosPaises = []
+    let termoPesquisa = ''
+
+    // ── RENDER ──────────────────────────────────────────────
+    function renderPaises(lista) {
+      const grid = document.getElementById('paises-grid')
+      const empty = document.getElementById('empty-state')
+      const count = document.getElementById('count-label')
+
+      if (lista.length === 0) {
+        grid.innerHTML = ''
+        empty.classList.remove('hidden')
+        count.textContent = '0 países encontrados'
+        return
+      }
+
+      empty.classList.add('hidden')
+      count.textContent = `${lista.length} país${lista.length !== 1 ? 'es' : ''} encontrado${lista.length !== 1 ? 's' : ''}`
+
+      grid.innerHTML = lista.map((pais, i) => {
+        const flag = flagEmojis[pais.codigo] || '🌍'
+
+        return `
+          <div class="pais-card relative bg-white/[0.04] border border-white/[0.07] rounded-[22px] p-8 cursor-pointer overflow-hidden fade-in"
+               style="animation-delay: ${i * 0.05}s"
+               onclick="window.location.href='ligas.html?pais=${pais.id}'">
+            <div class="card-shine"></div>
+
+            <!-- Bandeira -->
+            <div class="bandeira-wrap mb-4 relative z-10">${flag}</div>
+
+            <!-- Nome -->
+            <h3 class="font-display text-[32px] leading-[1] tracking-[1px] mb-2 relative z-10">${pais.nome}</h3>
+
+            <!-- Código -->
+            <p class="font-mono text-[12px] tracking-[1px] text-white/40 relative z-10">${pais.codigo}</p>
+
+            <!-- Footer -->
+            <div class="flex items-center justify-between mt-6 pt-5 border-t border-white/[0.06] relative z-10">
+              <span class="text-white/30 text-[13px]">Ver ligas</span>
+              <span class="text-acid text-[18px]">→</span>
+            </div>
+          </div>
+        `
+      }).join('')
+    }
+
+    // ── FILTRAR ─────────────────────────────────────────────
+    function filtrar() {
+      if (!termoPesquisa.trim()) {
+        renderPaises(todosPaises)
+        return
+      }
+
+      const q = termoPesquisa.toLowerCase()
+      const resultado = todosPaises.filter(p =>
+        p.nome.toLowerCase().includes(q) ||
+        p.codigo.toLowerCase().includes(q)
+      )
+      renderPaises(resultado)
+    }
+
+    // ── INIT ─────────────────────────────────────────────────
+    async function init() {
+      try {
+        todosPaises = await getPaises()
+        renderPaises(todosPaises)
+      } catch (err) {
+        console.error('Erro ao carregar países:', err)
+        document.getElementById('paises-grid').innerHTML = `
+          <div class="col-span-4 text-center py-20">
+            <p class="font-display text-[50px] text-white/10 mb-3">ERRO AO CARREGAR</p>
+            <p class="text-white/40 text-[14px] font-mono">${err.message}</p>
+          </div>
+        `
+        document.getElementById('count-label').textContent = 'Erro de ligação'
+      }
+    }
+
+    // Pesquisa com debounce
+    let searchTimer
+    const searchInput = document.getElementById('search-input')
+    if (searchInput) {
+      searchInput.addEventListener('input', e => {
+        clearTimeout(searchTimer)
+        searchTimer = setTimeout(() => {
+          termoPesquisa = e.target.value
+          filtrar()
+        }, 280)
+      })
+    }
+
+    init()
+  </script>
+</body>
+</html>

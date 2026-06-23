@@ -74,7 +74,7 @@
 
     <nav class="flex gap-9">
       <a href="index.html" class="nav-link text-white/50 no-underline text-[13px] font-medium tracking-[1.5px] uppercase hover:text-acid transition-colors">Home</a>
-      <a href="ligas.html" class="nav-link text-acid no-underline text-[13px] font-medium tracking-[1.5px] uppercase border-b border-acid pb-1">Ligas</a>
+      <a href="paises.html" class="nav-link text-acid no-underline text-[13px] font-medium tracking-[1.5px] uppercase border-b border-acid pb-1">Países</a>
       <a href="index.html#sobre" class="nav-link text-white/50 no-underline text-[13px] font-medium tracking-[1.5px] uppercase hover:text-acid transition-colors">Sobre</a>
     </nav>
 
@@ -277,19 +277,24 @@
     // ── INIT ─────────────────────────────────────────────────
     async function init() {
       try {
-        // Verifica se há um parâmetro 'liga' na URL
+        // Verifica parâmetros na URL
         const params = new URLSearchParams(window.location.search)
         const ligaId = params.get('liga')
+        const paisId = params.get('pais')
 
-        console.log('🚀 Init - URL params:', { ligaId })
+        console.log('🚀 Init - URL params:', { ligaId, paisId })
 
         if (ligaId) {
           // Se há uma liga selecionada, mostrar clubes dessa liga
           console.log('📍 Detectada liga na URL:', ligaId)
           await carregarClubesDaLiga(parseInt(ligaId))
+        } else if (paisId) {
+          // Se há um país selecionado, mostrar ligas desse país
+          console.log('📍 Detectado país na URL:', paisId)
+          await carregarLigasDoPais(parseInt(paisId))
         } else {
           // Caso contrário, mostrar lista de ligas
-          console.log('📍 Sem liga na URL - mostrando ligas')
+          console.log('📍 Sem filtros na URL - mostrando todas as ligas')
           todasLigas = await getLigas()
           await carregarPaises(todasLigas)
           renderLigas(todasLigas)
@@ -304,6 +309,58 @@
           </div>
         `
         document.getElementById('count-label').textContent = 'Erro de ligação'
+      }
+    }
+
+    // ── CARREGAR LIGAS DE UM PAÍS ─────────────────────────────
+    async function carregarLigasDoPais(paisId) {
+      try {
+        console.log('🔍 Carregando ligas do país:', paisId)
+
+        // Buscar país
+        const paises = await getPaises()
+        const pais = paises.find(p => p.id === paisId)
+
+        if (!pais) {
+          throw new Error('País não encontrado')
+        }
+
+        console.log('✅ País encontrado:', pais.nome)
+
+        // Atualizar título
+        document.getElementById('page-title').innerHTML = `
+          LIGAS DE<br><span class="text-acid">${pais.nome.toUpperCase()}</span>
+        `
+        document.getElementById('page-desc').textContent = `
+          Todas as ligas de futebol de ${pais.nome}. Descobre as competições e clubes deste país.
+        `
+
+        // Filtrar ligas pelo país
+        todasLigas = await getLigas()
+        const ligasDoPais = todasLigas.filter(l => l.pais_id === paisId)
+
+        // Ocultar filtros de país (já estamos filtrando)
+        const paisesFilter = document.getElementById('paises-filter')
+        if (paisesFilter) {
+          paisesFilter.innerHTML = `
+            <a href="paises.html" class="pais-btn font-mono text-[12px] tracking-[1px] px-4 py-2 rounded-full border border-white/[0.1] bg-white/[0.04] text-white/70 hover:border-acid/40 transition-all cursor-pointer inline-flex items-center gap-2 no-underline">
+              ← Voltar aos Países
+            </a>
+          `
+        }
+
+        // Renderizar ligas
+        renderLigas(ligasDoPais)
+
+      } catch (err) {
+        console.error('❌ Erro ao carregar ligas do país:', err)
+        document.getElementById('ligas-grid').innerHTML = `
+          <div class="col-span-3 text-center py-20">
+            <p class="font-display text-[50px] text-white/10 mb-3">ERRO AO CARREGAR LIGAS</p>
+            <p class="text-white/40 text-[14px] font-mono">${err.message}</p>
+            <a href="paises.html" class="text-acid hover:text-white transition-colors inline-block mt-4 no-underline">← Voltar aos Países</a>
+          </div>
+        `
       }
     }
 
