@@ -1,0 +1,470 @@
+<!DOCTYPE html>
+<html lang="pt-PT">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Entrar — Fora do Radar</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,700;1,300&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: { acid: '#b4ff00' },
+          fontFamily: {
+            display: ['"Bebas Neue"', 'sans-serif'],
+            body:    ['"DM Sans"', 'sans-serif'],
+            mono:    ['"Space Mono"', 'monospace'],
+          }
+        }
+      },
+      corePlugins: { preflight: false }
+    }
+  </script>
+  <link rel="stylesheet" href="style.css">
+
+  <style>
+    .auth-input {
+      width: 100%;
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 14px;
+      padding: 15px 18px;
+      color: white;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 15px;
+      outline: none;
+      transition: border-color .25s, box-shadow .25s;
+    }
+    .auth-input::placeholder { color: rgba(255,255,255,0.25); }
+    .auth-input:focus {
+      border-color: rgba(180,255,0,.45);
+      box-shadow: 0 0 0 3px rgba(180,255,0,.08);
+    }
+    .auth-input.error { border-color: rgba(255,80,80,.5); }
+
+    .tab-btn { transition: all .25s; }
+    .tab-btn.active {
+      color: #000;
+      background: #b4ff00;
+    }
+    .tab-btn:not(.active) {
+      color: rgba(255,255,255,.5);
+    }
+    .tab-btn:not(.active):hover { color: white; }
+
+    .auth-btn-submit {
+      width: 100%;
+      background: #b4ff00;
+      color: #000;
+      font-weight: 700;
+      font-size: 15px;
+      padding: 16px;
+      border-radius: 14px;
+      border: none;
+      cursor: pointer;
+      font-family: 'DM Sans', sans-serif;
+      letter-spacing: .5px;
+      transition: opacity .2s, transform .2s, box-shadow .2s;
+    }
+    .auth-btn-submit:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 12px 40px rgba(180,255,0,.3);
+    }
+    .auth-btn-submit:active { transform: translateY(0); }
+    .auth-btn-submit:disabled { opacity: .5; cursor: not-allowed; transform: none; box-shadow: none; }
+
+    .alert {
+      border-radius: 12px;
+      padding: 14px 18px;
+      font-size: 14px;
+      font-family: 'DM Sans', sans-serif;
+      display: none;
+    }
+    .alert.show { display: block; }
+    .alert-error { background: rgba(255,80,80,.1); border: 1px solid rgba(255,80,80,.25); color: #ff9090; }
+    .alert-success { background: rgba(180,255,0,.1); border: 1px solid rgba(180,255,0,.25); color: #b4ff00; }
+
+    .password-wrap { position: relative; }
+    .password-toggle {
+      position: absolute; right: 16px; top: 50%; transform: translateY(-50%);
+      background: none; border: none; cursor: pointer; color: rgba(255,255,255,.3);
+      transition: color .2s; padding: 0;
+    }
+    .password-toggle:hover { color: rgba(255,255,255,.7); }
+    .password-toggle svg { width: 18px; display: block; }
+
+    .strength-bar {
+      height: 3px;
+      border-radius: 2px;
+      background: rgba(255,255,255,.1);
+      overflow: hidden;
+      margin-top: 8px;
+    }
+    .strength-fill {
+      height: 100%;
+      border-radius: 2px;
+      transition: width .3s, background .3s;
+    }
+
+    .slide-panel { transition: opacity .3s, transform .3s; }
+    .slide-panel.hidden-panel {
+      opacity: 0;
+      pointer-events: none;
+      position: absolute;
+      transform: translateX(20px);
+    }
+
+    /* Lado esquerdo — imagem decorativa */
+    .auth-visual { position: relative; overflow: hidden; }
+    .auth-visual img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+    .auth-visual-overlay {
+      position: absolute; inset: 0;
+      background: linear-gradient(135deg, rgba(6,6,8,.6) 0%, rgba(0,0,0,.2) 100%);
+    }
+    .auth-visual-content { position: relative; z-index: 2; }
+  </style>
+</head>
+
+<body class="bg-[#060608] text-white font-body min-h-screen overflow-x-hidden no-site-bg">
+  <div class="noise"></div>
+  <div class="bg-orb orb1"></div>
+
+  <!-- BACK LINK -->
+  <a href="index.html" class="fixed top-8 left-8 z-50 flex items-center gap-2 font-mono text-[12px] tracking-[2px] text-white/40 no-underline hover:text-acid transition-colors group">
+    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-4 group-hover:-translate-x-1 transition-transform"><path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18"/></svg>
+    VOLTAR
+  </a>
+
+  <div class="flex min-h-screen">
+
+    <!-- ── LADO ESQUERDO — visual ── -->
+    <div class="hidden lg:flex lg:w-1/2 auth-visual">
+      <img src="https://images.unsplash.com/photo-1577223625816-7546f13df25d?q=80&w=1400&auto=format&fit=crop" alt="Futebol">
+      <div class="auth-visual-overlay"></div>
+      <div class="auth-visual-content flex flex-col justify-end p-16 w-full">
+        <!-- Logo -->
+        <div class="flex items-center gap-4 mb-auto pt-6">
+          <div class="radar-wrap">
+            <div class="radar-ring r1"></div><div class="radar-ring r2"></div>
+            <div class="radar-dot"></div><div class="radar-sweep"></div>
+          </div>
+          <div class="flex flex-col leading-none">
+            <span class="font-mono text-[10px] tracking-[4px] text-white/50">FORA DO</span>
+            <span class="font-display text-[26px] tracking-[3px]">RADAR</span>
+          </div>
+        </div>
+
+        <!-- Quote -->
+        <div class="mb-0">
+          <p class="font-display text-[52px] leading-[1] tracking-[1px] mb-4">
+            O FUTEBOL<br>QUE VOCÊ<br><span class="text-acid">NUNCA VIU.</span>
+          </p>
+          <p class="text-white/50 text-[15px] leading-[1.8] max-w-[380px]">
+            Cria a tua conta e guarda os teus clubes favoritos, descobre novas ligas e acompanha o futebol alternativo de todo o mundo.
+          </p>
+        </div>
+
+        <!-- Stats -->
+        <div class="flex gap-10 mt-10">
+          <div>
+            <p class="font-display text-[36px] text-acid leading-none">200+</p>
+            <p class="font-mono text-[10px] tracking-[2px] text-white/40 mt-1">CLUBES</p>
+          </div>
+          <div>
+            <p class="font-display text-[36px] leading-none">40+</p>
+            <p class="font-mono text-[10px] tracking-[2px] text-white/40 mt-1">PAÍSES</p>
+          </div>
+          <div>
+            <p class="font-display text-[36px] leading-none">600+</p>
+            <p class="font-mono text-[10px] tracking-[2px] text-white/40 mt-1">CAMISOLAS</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── LADO DIREITO — formulário ── -->
+    <div class="w-full lg:w-1/2 flex items-center justify-center p-8 lg:p-16 relative">
+
+      <div class="w-full max-w-[420px]">
+
+        <!-- TABS -->
+        <div class="flex gap-2 p-1 bg-white/[0.04] border border-white/[0.07] rounded-2xl mb-10">
+          <button id="tab-login" class="tab-btn active flex-1 py-3 rounded-xl font-mono text-[12px] tracking-[2px] uppercase">
+            Entrar
+          </button>
+          <button id="tab-registo" class="tab-btn flex-1 py-3 rounded-xl font-mono text-[12px] tracking-[2px] uppercase">
+            Registar
+          </button>
+        </div>
+
+        <!-- ALERTA GLOBAL -->
+        <div id="alert-box" class="alert mb-6"></div>
+
+        <!-- ── PAINEL LOGIN ── -->
+        <div id="panel-login" class="slide-panel relative">
+          <div class="mb-8">
+            <h2 class="font-display text-[52px] leading-[1] tracking-[1px] mb-2">BEM-VINDO<br>DE VOLTA.</h2>
+            <p class="text-white/40 text-[14px]">Entra na tua conta para continuar.</p>
+          </div>
+
+          <form id="form-login" novalidate>
+            <div class="flex flex-col gap-5">
+
+              <div>
+                <label class="font-mono text-[11px] tracking-[2px] text-white/40 mb-2 block">EMAIL</label>
+                <input id="login-email" type="email" class="auth-input" placeholder="o.teu@email.com" autocomplete="email">
+                <p class="error-msg text-[12px] text-red-400 mt-1 hidden"></p>
+              </div>
+
+              <div>
+                <label class="font-mono text-[11px] tracking-[2px] text-white/40 mb-2 block">PASSWORD</label>
+                <div class="password-wrap">
+                  <input id="login-password" type="password" class="auth-input pr-12" placeholder="••••••••" autocomplete="current-password">
+                  <button type="button" class="password-toggle" onclick="togglePassword('login-password', this)">
+                    <svg id="eye-login" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z" /><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
+                  </button>
+                </div>
+                <p class="error-msg text-[12px] text-red-400 mt-1 hidden"></p>
+              </div>
+
+              <button type="submit" class="auth-btn-submit mt-2" id="btn-login">
+                Entrar na conta
+              </button>
+
+            </div>
+          </form>
+
+          <p class="text-center text-white/30 text-[13px] mt-6">
+            Não tens conta?
+            <button onclick="switchTab('registo')" class="text-acid font-medium bg-none border-none cursor-pointer text-[13px] font-body">Regista-te aqui</button>
+          </p>
+        </div>
+
+        <!-- ── PAINEL REGISTO ── -->
+        <div id="panel-registo" class="slide-panel hidden-panel">
+          <div class="mb-8">
+            <h2 class="font-display text-[52px] leading-[1] tracking-[1px] mb-2">CRIA A TUA<br><span class="text-acid">CONTA.</span></h2>
+            <p class="text-white/40 text-[14px]">Grátis. Sem cartão. Para sempre.</p>
+          </div>
+
+          <form id="form-registo" novalidate>
+            <div class="flex flex-col gap-5">
+
+              <div>
+                <label class="font-mono text-[11px] tracking-[2px] text-white/40 mb-2 block">USERNAME</label>
+                <input id="reg-username" type="text" class="auth-input" placeholder="o_teu_username" autocomplete="username">
+                <p class="error-msg text-[12px] text-red-400 mt-1 hidden"></p>
+              </div>
+
+              <div>
+                <label class="font-mono text-[11px] tracking-[2px] text-white/40 mb-2 block">EMAIL</label>
+                <input id="reg-email" type="email" class="auth-input" placeholder="o.teu@email.com" autocomplete="email">
+                <p class="error-msg text-[12px] text-red-400 mt-1 hidden"></p>
+              </div>
+
+              <div>
+                <label class="font-mono text-[11px] tracking-[2px] text-white/40 mb-2 block">PASSWORD</label>
+                <div class="password-wrap">
+                  <input id="reg-password" type="password" class="auth-input pr-12" placeholder="Mín. 6 caracteres" autocomplete="new-password" oninput="checkStrength(this.value)">
+                  <button type="button" class="password-toggle" onclick="togglePassword('reg-password', this)">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z" /><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
+                  </button>
+                </div>
+                <div class="strength-bar"><div id="strength-fill" class="strength-fill" style="width:0%"></div></div>
+                <p id="strength-label" class="text-[11px] text-white/25 mt-1 font-mono"></p>
+                <p class="error-msg text-[12px] text-red-400 mt-1 hidden"></p>
+              </div>
+
+              <div>
+                <label class="font-mono text-[11px] tracking-[2px] text-white/40 mb-2 block">CONFIRMAR PASSWORD</label>
+                <input id="reg-confirm" type="password" class="auth-input" placeholder="••••••••" autocomplete="new-password">
+                <p class="error-msg text-[12px] text-red-400 mt-1 hidden"></p>
+              </div>
+
+              <button type="submit" class="auth-btn-submit mt-2" id="btn-registo">
+                Criar conta grátis
+              </button>
+
+            </div>
+          </form>
+
+          <p class="text-center text-white/30 text-[13px] mt-6">
+            Já tens conta?
+            <button onclick="switchTab('login')" class="text-acid font-medium bg-none border-none cursor-pointer text-[13px] font-body">Entra aqui</button>
+          </p>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <script type="module">
+    import { login, registar, getUser } from './supabase.js'
+
+    // Redireciona se já autenticado
+    getUser().then(user => {
+      if (user) window.location.href = 'index.html'
+    })
+
+    // ── TABS ─────────────────────────────────────────────────
+    window.switchTab = function(tab) {
+      const login = document.getElementById('panel-login')
+      const reg   = document.getElementById('panel-registo')
+      const tLogin = document.getElementById('tab-login')
+      const tReg  = document.getElementById('tab-registo')
+      clearAlert()
+
+      if (tab === 'registo') {
+        login.classList.add('hidden-panel')
+        reg.classList.remove('hidden-panel')
+        tLogin.classList.remove('active')
+        tReg.classList.add('active')
+      } else {
+        reg.classList.add('hidden-panel')
+        login.classList.remove('hidden-panel')
+        tReg.classList.remove('active')
+        tLogin.classList.add('active')
+      }
+    }
+
+    document.getElementById('tab-login').addEventListener('click', () => switchTab('login'))
+    document.getElementById('tab-registo').addEventListener('click', () => switchTab('registo'))
+
+    // ── HELPERS UI ───────────────────────────────────────────
+    function showAlert(msg, type = 'error') {
+      const box = document.getElementById('alert-box')
+      box.textContent = msg
+      box.className = `alert show alert-${type}`
+    }
+    function clearAlert() {
+      const box = document.getElementById('alert-box')
+      box.className = 'alert'
+    }
+    function setLoading(btn, loading, label) {
+      btn.disabled = loading
+      btn.textContent = loading ? 'A processar...' : label
+    }
+    function fieldError(input, msg) {
+      input.classList.add('error')
+      const p = input.parentElement.querySelector('.error-msg') || input.nextElementSibling
+      if (p && p.classList.contains('error-msg')) {
+        p.textContent = msg
+        p.classList.remove('hidden')
+      }
+    }
+    function clearErrors(form) {
+      form.querySelectorAll('.auth-input').forEach(i => i.classList.remove('error'))
+      form.querySelectorAll('.error-msg').forEach(p => { p.textContent = ''; p.classList.add('hidden') })
+    }
+
+    // ── FORÇA DA PASSWORD ────────────────────────────────────
+    window.checkStrength = function(val) {
+      const fill = document.getElementById('strength-fill')
+      const label = document.getElementById('strength-label')
+      let score = 0
+      if (val.length >= 6)  score++
+      if (val.length >= 10) score++
+      if (/[A-Z]/.test(val)) score++
+      if (/[0-9]/.test(val)) score++
+      if (/[^a-zA-Z0-9]/.test(val)) score++
+
+      const levels = [
+        { pct: '20%', color: '#ff5050', txt: 'Muito fraca' },
+        { pct: '40%', color: '#ff9050', txt: 'Fraca' },
+        { pct: '60%', color: '#ffd050', txt: 'Razoável' },
+        { pct: '80%', color: '#90ff50', txt: 'Boa' },
+        { pct: '100%', color: '#b4ff00', txt: 'Excelente' },
+      ]
+      const lv = levels[Math.max(0, score - 1)] || levels[0]
+      fill.style.width = val.length ? lv.pct : '0%'
+      fill.style.background = lv.color
+      label.textContent = val.length ? lv.txt : ''
+      label.style.color = val.length ? lv.color : 'transparent'
+    }
+
+    // ── MOSTRAR/OCULTAR PASSWORD ─────────────────────────────
+    window.togglePassword = function(id, btn) {
+      const input = document.getElementById(id)
+      const isPass = input.type === 'password'
+      input.type = isPass ? 'text' : 'password'
+      btn.querySelector('svg').style.opacity = isPass ? '1' : '0.4'
+    }
+
+    // ── FORM: LOGIN ──────────────────────────────────────────
+    document.getElementById('form-login').addEventListener('submit', async (e) => {
+      e.preventDefault()
+      clearErrors(e.target)
+      clearAlert()
+
+      const email    = document.getElementById('login-email').value.trim()
+      const password = document.getElementById('login-password').value
+      const btn      = document.getElementById('btn-login')
+
+      let valid = true
+      if (!email) { fieldError(document.getElementById('login-email'), 'Email obrigatório'); valid = false }
+      if (!password) { fieldError(document.getElementById('login-password'), 'Password obrigatória'); valid = false }
+      if (!valid) return
+
+      setLoading(btn, true, 'Entrar na conta')
+      try {
+        await login({ email, password })
+        showAlert('Login efetuado com sucesso! A redirecionar...', 'success')
+        setTimeout(() => window.location.href = 'index.html', 1200)
+      } catch (err) {
+        const msgs = {
+          'Invalid login credentials': 'Email ou password incorretos.',
+          'Email not confirmed': 'Confirma o teu email antes de entrar.',
+        }
+        showAlert(msgs[err.message] || err.message)
+      } finally {
+        setLoading(btn, false, 'Entrar na conta')
+      }
+    })
+
+    // ── FORM: REGISTO ────────────────────────────────────────
+    document.getElementById('form-registo').addEventListener('submit', async (e) => {
+      e.preventDefault()
+      clearErrors(e.target)
+      clearAlert()
+
+      const username = document.getElementById('reg-username').value.trim()
+      const email    = document.getElementById('reg-email').value.trim()
+      const password = document.getElementById('reg-password').value
+      const confirm  = document.getElementById('reg-confirm').value
+      const btn      = document.getElementById('btn-registo')
+
+      let valid = true
+      if (!username || username.length < 3)  { fieldError(document.getElementById('reg-username'), 'Mínimo 3 caracteres'); valid = false }
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { fieldError(document.getElementById('reg-email'), 'Email inválido'); valid = false }
+      if (password.length < 6) { fieldError(document.getElementById('reg-password'), 'Mínimo 6 caracteres'); valid = false }
+      if (password !== confirm) { fieldError(document.getElementById('reg-confirm'), 'As passwords não coincidem'); valid = false }
+      if (!valid) return
+
+      setLoading(btn, true, 'Criar conta grátis')
+      try {
+        await registar({ username, email, password })
+        showAlert('Conta criada! Verifica o teu email para confirmar o registo.', 'success')
+        setTimeout(() => switchTab('login'), 2500)
+      } catch (err) {
+        const msgs = {
+          'User already registered': 'Este email já está registado.',
+          'Password should be at least 6 characters': 'A password precisa de ter pelo menos 6 caracteres.',
+        }
+        showAlert(msgs[err.message] || err.message)
+      } finally {
+        setLoading(btn, false, 'Criar conta grátis')
+      }
+    })
+
+    // Verifica URL params — se vier de um redirect do Supabase
+    const params = new URLSearchParams(window.location.search)
+    if (params.get('tab') === 'registo') switchTab('registo')
+  </script>
+</body>
+</html>

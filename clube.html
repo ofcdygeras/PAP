@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="pt-PT">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Clube — Fora do Radar</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,700;1,300&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: { acid: '#b4ff00' },
+          fontFamily: {
+            display: ['"Bebas Neue"', 'sans-serif'],
+            body: ['"DM Sans"', 'sans-serif'],
+            mono: ['"Space Mono"', 'monospace'],
+          }
+        }
+      },
+      corePlugins: { preflight: false }
+    }
+  </script>
+  <link rel="stylesheet" href="style.css">
+  <style>
+    .card-shine { position: absolute; inset: 0; pointer-events: none; opacity: 0; background: radial-gradient(circle at 60% 20%, rgba(180,255,0,.08), transparent 70%); transition: opacity .3s; }
+    .info-block { background: rgba(255,255,255,.04); border: 1px solid rgba(255,255,255,.08); border-radius: 22px; }
+    .info-block h3 { font-size: 1rem; letter-spacing: .12em; text-transform: uppercase; color: #b4ff00; }
+    .article-card { background: rgba(255,255,255,.05); border: 1px solid rgba(255,255,255,.08); border-radius: 20px; }
+    .fade-in { animation: fadeIn .4s ease forwards; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
+  </style>
+</head>
+<body class="bg-[#060608] text-white font-body overflow-x-hidden">
+  <div class="noise"></div>
+  <div class="bg-orb orb1"></div>
+  <div class="bg-orb orb2"></div>
+
+  <header id="header" class="fixed top-0 left-0 w-full flex justify-between items-center px-[60px] py-[22px] bg-black/60 backdrop-blur-2xl border-b border-white/[0.07] z-[1000]">
+    <a href="index.html" class="logo flex items-center gap-[14px] no-underline">
+      <div class="radar-wrap"><div class="radar-ring r1"></div><div class="radar-ring r2"></div><div class="radar-dot"></div><div class="radar-sweep"></div></div>
+      <div class="logo-text flex flex-col leading-none">
+        <span class="font-mono text-[10px] tracking-[4px] text-white/50">FORA DO</span>
+        <span class="font-display text-[26px] tracking-[3px] text-white">RADAR</span>
+      </div>
+    </a>
+    <nav class="flex gap-9">
+      <a href="index.html" class="nav-link text-white/50 no-underline text-[13px] font-medium tracking-[1.5px] uppercase hover:text-acid transition-colors">Home</a>
+      <a href="ligas.html" class="nav-link text-acid no-underline text-[13px] font-medium tracking-[1.5px] uppercase border-b border-acid pb-1">Ligas</a>
+      <a href="index.html#sobre" class="nav-link text-white/50 no-underline text-[13px] font-medium tracking-[1.5px] uppercase hover:text-acid transition-colors">Sobre</a>
+    </nav>
+    <div class="flex items-center gap-3">
+      <a href="auth.html" id="auth-btn" class="account-btn flex items-center gap-2 px-5 py-[10px] rounded-full border border-white/[0.07] bg-white/[0.04] text-white text-[13px] font-medium no-underline hover:border-acid hover:text-acid transition-all">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-[17px]"><path stroke-linecap="round" stroke-linejoin="round" d="M17.982 18.725A7.488 7.488 0 0012 15.75a7.488 7.488 0 00-5.982 2.975m11.963 0a9 9 0 10-11.963 0m11.963 0A8.966 8.966 0 0112 21a8.966 8.966 0 01-5.982-2.275" /></svg>
+        Entrar
+      </a>
+    </div>
+  </header>
+
+  <section class="pt-[160px] pb-[80px] px-[40px] lg:px-[60px] relative z-[1]">
+    <div class="flex flex-col gap-6 max-w-[1300px] mx-auto">
+      <div class="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+        <div>
+          <p class="font-mono text-[11px] tracking-[4px] text-acid mb-4">CLUBE · DETALHES · HISTÓRIA</p>
+          <h1 id="clube-title" class="font-display text-[60px] leading-[1.05] tracking-[2px]">A carregar...</h1>
+          <p id="clube-subtitle" class="text-white/50 text-[16px] leading-[1.8] max-w-[680px]">Aguarde enquanto carregamos os dados do clube.</p>
+        </div>
+        <div class="flex gap-3">
+          <a href="index.html" class="inline-flex items-center gap-2 px-5 py-3 rounded-full border border-white/[0.1] bg-white/[0.04] text-white text-[13px] no-underline hover:border-acid hover:text-acid transition-all">Início</a>
+          <a id="back-to-league" href="ligas.html" class="inline-flex items-center gap-2 px-5 py-3 rounded-full border border-white/[0.1] bg-white/[0.04] text-white text-[13px] no-underline hover:border-acid hover:text-acid transition-all">Voltar à Liga</a>
+        </div>
+      </div>
+
+      <div id="clube-page" class="grid gap-8 lg:grid-cols-[1fr_1.1fr_1fr]">
+        <!-- COLUNA ESQUERDA: Estádio -->
+        <aside class="space-y-6">
+          <section class="info-block p-8 overflow-hidden">
+            <h3 class="mb-6 font-display text-[20px] tracking-[2px]" style="color:#b4ff00">Estádio</h3>
+            <img id="clube-stadium-image" src="" alt="Estádio" class="w-full rounded-[20px] object-cover max-h-[420px] border border-white/[0.1]" />
+            <p id="clube-stadium-name-label" class="mt-4 text-white/50 text-[12px] font-mono tracking-[1px] text-center uppercase"></p>
+          </section>
+        </aside>
+
+        <!-- COLUNA DO MEIO: Informação do Clube -->
+        <div class="space-y-6 flex flex-col items-center text-center">
+          <section class="info-block p-8 relative overflow-hidden w-full">
+            <div class="card-shine"></div>
+            <div class="flex flex-col items-center text-center">
+              <img id="clube-escudo" src="" alt="Escudo do clube" class="w-[180px] h-[180px] rounded-[24px] border-2 border-acid/20 bg-black/40 mb-6" />
+              <p id="clube-liga" class="font-mono text-[11px] tracking-[3px] text-acid uppercase mb-3"></p>
+              <h2 id="clube-name" class="font-display text-[48px] leading-[1.05] tracking-[1px] mb-2"></h2>
+              <p id="clube-country" class="text-white/50 text-[14px]"></p>
+            </div>
+          </section>
+
+          <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 w-full">
+            <div class="info-block p-5 text-center">
+              <p class="font-mono text-[10px] tracking-[2px] text-acid uppercase mb-2">Fundado</p>
+              <p id="clube-year" class="font-display text-[24px] leading-tight"></p>
+            </div>
+            <div class="info-block p-5 text-center">
+              <p class="font-mono text-[10px] tracking-[2px] text-acid uppercase mb-2">Local</p>
+              <p id="clube-city" class="font-medium text-white/80 text-[14px]"></p>
+            </div>
+            <div class="info-block p-5 text-center">
+              <p class="font-mono text-[10px] tracking-[2px] text-acid uppercase mb-2">Estádio</p>
+              <p id="clube-stadium" class="font-medium text-white/80 text-[14px]"></p>
+            </div>
+          </div>
+
+          <section class="info-block p-8 w-full">
+            <h3 class="mb-6 font-display text-[20px] tracking-[2px]" style="color:#b4ff00">Histórico</h3>
+            <p id="clube-description" class="text-white/60 leading-[1.8] text-[14px]"></p>
+          </section>
+
+          <section class="info-block p-8 w-full">
+            <h3 class="mb-6 font-display text-[20px] tracking-[2px]" style="color:#b4ff00">Cores</h3>
+            <div class="flex items-center justify-center gap-4">
+              <p id="clube-colors" class="text-white/70 text-[14px] leading-relaxed"></p>
+            </div>
+          </section>
+        </div>
+
+        <!-- COLUNA DIREITA: Camisolas -->
+        <aside class="space-y-6">
+          <section class="info-block p-8" style="background: linear-gradient(135deg, rgba(180,255,0,0.03) 0%, rgba(255,255,255,0.01) 100%); border: 1.5px solid rgba(180,255,0,0.15)">
+            <h3 class="mb-6 font-display text-[20px] tracking-[2px]" style="color:#b4ff00">Camisolas</h3>
+            <div id="camisolas-container" class="grid gap-4 grid-cols-2">
+              <p class="text-white/40 text-sm col-span-2">A carregar camisolas...</p>
+            </div>
+          </section>
+        </aside>
+      </div>
+    </div>
+  </section>
+
+  <footer class="border-t border-white/[0.07] px-[80px] py-10 relative z-[1]">
+    <div class="flex justify-between items-center">
+      <p class="font-mono text-[12px] text-white/20 tracking-[2px]">© 2026 FORA DO RADAR · PROJETO PAP</p>
+      <p class="font-mono text-[12px] text-white/20">O futebol que vive fora do mainstream.</p>
+    </div>
+  </footer>
+
+  <script type="module">
+    import { supabase, getClube, initAuthHeader, getCamisolas } from './supabase.js'
+    initAuthHeader()
+
+    const params = new URLSearchParams(window.location.search)
+    const clubeId = params.get('clube')
+    const backToLeague = document.getElementById('back-to-league')
+
+    // ── Regista este clube no histórico de visitas (para recomendações) ──
+    function registarHistorico(id) {
+      try {
+        const hist = JSON.parse(localStorage.getItem('clubes_vistos') || '[]')
+        const novo = [id, ...hist.filter(x => x !== id)].slice(0, 20)
+        localStorage.setItem('clubes_vistos', JSON.stringify(novo))
+      } catch(e) {}
+    }
+
+    // ── Constrói o path da foto do estádio a partir do nome do clube ──
+    // Convenção: imagens/estadios/Estadio_NomeDoClube.jpg
+    // Remove acentos e caracteres especiais para corresponder ao nome do ficheiro
+    function estadioPath(nomeClube) {
+      if (!nomeClube) return null
+      // Normaliza: remove acentos, substitui espaços por underscore, capitaliza cada palavra
+      const normalizado = nomeClube
+        .normalize('NFD').replace(/[\u0300-\u036f]/g, '') // remove acentos
+        .trim()
+        .replace(/\s+/g, '_')                             // espaços → _
+        .replace(/[^a-zA-Z0-9_\-]/g, '')                 // remove caracteres inválidos
+      return `imagens/estadios/Estadio_${normalizado}.jpg`
+    }
+
+    async function mostrarErro(mensagem) {
+      document.getElementById('clube-title').textContent = 'Clube não encontrado'
+      document.getElementById('clube-subtitle').textContent = mensagem
+      document.getElementById('clube-page').innerHTML = `
+        <div class="col-span-3 text-center py-20">
+          <p class="font-display text-[40px] text-white/10 mb-4">Ops...</p>
+          <p class="text-white/40 text-[14px]">${mensagem}</p>
+          <a href="ligas.html" class="inline-block mt-6 px-5 py-3 rounded-full bg-acid text-black text-[13px] font-semibold no-underline">Voltar às Ligas</a>
+        </div>`
+    }
+
+    // ── Constrói o path da foto da camisola a partir do nome do clube, tipo e época ──
+    // Convenção: imagens/camisolas/Camisola_NomeDoClube_Tipo_Epoca.jpg
+    function camisolaPath(nomeClube, tipo, epoca) {
+      if (!nomeClube || !tipo || !epoca) return null
+      const normalizado = nomeClube
+        .normalize('NFD').replace(/[\u0300-\u036f]/g, '') // remove acentos
+        .trim()
+        .replace(/\s+/g, '_')                             // espaços → _
+        .replace(/[^a-zA-Z0-9_\-]/g, '')                 // remove caracteres inválidos
+      const tipoNormalizado = tipo
+        .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+        .trim()
+        .replace(/\s+/g, '_')
+        .replace(/[^a-zA-Z0-9_\-]/g, '')
+      const epocaNormalizada = epoca
+        .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+        .trim()
+        .replace(/\s+/g, '_')
+        .replace(/[^a-zA-Z0-9_\-]/g, '')
+      return `imagens/camisolas/Camisola_${normalizado}_${tipoNormalizado}_${epocaNormalizada}.jpg`
+    }
+
+    // ── Testa se uma imagem existe ──
+    const testarImagem = (src) => new Promise(resolve => {
+      const img = new Image()
+      img.onload = () => resolve(src)
+      img.onerror = () => resolve(null)
+      img.src = src
+    })
+
+    // ── Busca camisolas locais a partir do manifesto JSON ──
+    async function getCamisolasLocal(nomeClube) {
+      if (!nomeClube) return []
+      try {
+        const response = await fetch('./imagens/camisolas/camisolas-local.json', { cache: 'no-store' })
+        if (!response.ok) return []
+        const data = await response.json()
+        return data.filter(item => item.clube?.toLowerCase() === nomeClube.toLowerCase())
+      } catch (error) {
+        return []
+      }
+    }
+
+    // ── Carrega e renderiza as camisolas do clube ──
+    async function carregarCamisolas(clubeId, nomeClube) {
+      const container = document.getElementById('camisolas-container')
+      if (!container) return
+      try {
+        const camisolasDB = await getCamisolas(clubeId).catch(() => [])
+        const camisolasLocal = await getCamisolasLocal(nomeClube)
+        const seenKeys = new Set()
+        const camisolas = [...camisolasDB, ...camisolasLocal].filter((c) => {
+          const key = `${c.tipo || ''}||${c.epoca || ''}||${c.nome || ''}`
+          if (seenKeys.has(key)) return false
+          seenKeys.add(key)
+          return true
+        })
+
+        if (!camisolas || camisolas.length === 0) {
+          container.innerHTML = '<p class="text-white/30 text-sm col-span-3">Sem camisolas disponíveis para este clube.</p>'
+          return
+        }
+
+        // Processa todas as camisolas e testa imagens locais em paralelo
+        const camisolasProcessadas = await Promise.all(
+          camisolas.map(async (c) => {
+            const pathLocal = camisolaPath(nomeClube, c.tipo, c.epoca)
+            const srcFinal = await testarImagem(pathLocal)
+              ?? (c.imagem_url || null)
+              ?? `https://via.placeholder.com/600x800?text=${encodeURIComponent(c.nome || 'Camisola')}`
+            return { ...c, imagem_final: srcFinal }
+          })
+        )
+
+        container.innerHTML = camisolasProcessadas.map(c => `
+          <div class="camisola-card">
+            <div class="camisola-img-wrap">
+              <img src="${c.imagem_final}" alt="${c.nome || 'Camisola'}" loading="lazy"
+                onerror="this.parentElement.innerHTML='<span class=\\'camisola-sem-img\\'>Sem imagem</span>'" />
+            </div>
+            <div class="camisola-info">
+              <span class="camisola-epoca">${c.epoca || '—'}</span>
+              <p class="camisola-nome">${c.nome || 'Camisola'}</p>
+              ${c.tipo ? `<span class="camisola-tipo">${c.tipo}</span>` : ''}
+            </div>
+          </div>
+        `).join('')
+      } catch(e) {
+        container.innerHTML = '<p class="text-white/30 text-sm col-span-3">Erro ao carregar camisolas.</p>'
+      }
+    }
+
+    async function init() {
+      if (!clubeId) return mostrarErro('Faltou o parâmetro de clube na URL.')
+
+      try {
+        const clube = await getClube(parseInt(clubeId))
+        if (!clube) return mostrarErro('Este clube não existe.')
+
+        // Regista no histórico para o sistema de recomendação
+        registarHistorico(parseInt(clubeId))
+
+        // Preenche dados do clube
+        document.getElementById('clube-title').textContent = clube.nome
+        document.getElementById('clube-subtitle').textContent = clube.descricao || 'Detalhes do clube.'
+        document.getElementById('clube-name').textContent = clube.nome
+        document.getElementById('clube-liga').textContent = clube.ligas ? `Liga · ${clube.ligas.nome}` : 'Liga desconhecida'
+        document.getElementById('clube-country').textContent = clube.ligas?.paises?.nome || ''
+        document.getElementById('clube-year').textContent = clube.ano_fundacao || '—'
+        document.getElementById('clube-city').textContent = clube.cidade || '—'
+        document.getElementById('clube-stadium').textContent = clube.estadio_nome || '—'
+        document.getElementById('clube-description').textContent = clube.descricao || 'Sem descrição disponível.'
+        document.getElementById('clube-colors').textContent = clube.cores || 'Sem informação de cores.'
+        document.getElementById('clube-escudo').src = clube.escudo_url || `https://via.placeholder.com/400x400?text=${encodeURIComponent(clube.nome)}`
+        document.getElementById('clube-escudo').alt = `Escudo de ${clube.nome}`
+
+        // ── Foto do estádio: primeiro tenta a pasta local, depois cai no URL da BD ──
+        const imgEstadio = document.getElementById('clube-stadium-image')
+        const labelEstadio = document.getElementById('clube-stadium-name-label')
+        const pathLocal = estadioPath(clube.nome)
+
+        // Tenta carregar imagem local; se falhar usa a da BD ou placeholder
+        const srcFinal = await testarImagem(pathLocal)
+          ?? (clube.estadio_imagem || null)
+          ?? `https://via.placeholder.com/800x500?text=${encodeURIComponent(clube.estadio_nome || 'Estádio')}`
+
+        imgEstadio.src = srcFinal
+        imgEstadio.alt = clube.estadio_nome || 'Estádio do clube'
+        if (labelEstadio) labelEstadio.textContent = clube.estadio_nome || ''
+
+        // Link de volta à liga
+        const ligaUrl = clube.liga_id ? `ligas.html?liga=${clube.liga_id}` : 'ligas.html'
+        if (backToLeague) backToLeague.href = ligaUrl
+
+        // Carrega camisolas
+        await carregarCamisolas(parseInt(clubeId), clube.nome)
+
+      } catch (error) {
+        console.error('Erro carregando clube:', error)
+        mostrarErro('Não foi possível carregar o clube. Verifica a ligação ao Supabase.')
+      }
+    }
+
+    init()
+  </script>
+</body>
+</html>

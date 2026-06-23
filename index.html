@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html lang="pt-PT">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Fora do Radar</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,700;1,300&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: { acid: '#b4ff00' },
+          fontFamily: {
+            display: ['"Bebas Neue"', 'sans-serif'],
+            body: ['"DM Sans"', 'sans-serif'],
+            mono: ['"Space Mono"', 'monospace'],
+          }
+        }
+      },
+      corePlugins: { preflight: false }
+    }
+  </script>
+  <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+  <!-- NOISE OVERLAY -->
+  <div class="noise"></div>
+
+  <!-- BACKGROUND -->
+  <div class="bg-orb orb1"></div>
+  <div class="bg-orb orb2"></div>
+  <div class="bg-orb orb3"></div>
+
+  <!-- HEADER -->
+  <header id="header">
+    <div class="logo">
+      <div class="radar-wrap">
+        <div class="radar-ring r1"></div>
+        <div class="radar-ring r2"></div>
+        <div class="radar-dot"></div>
+        <div class="radar-sweep"></div>
+      </div>
+      <div class="logo-text">
+        <span class="logo-top">FORA DO</span>
+        <span class="logo-bottom">RADAR</span>
+      </div>
+    </div>
+
+    <nav>
+      <a href="index.html" class="nav-active">Home</a>
+      <a href="ligas.html">Ligas</a>
+      <a href="#sobre">Sobre</a>
+    </nav>
+
+    <div class="header-right">
+      <button class="search-btn">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />
+        </svg>
+      </button>
+      <!-- Auth button — updated dynamically by supabase.js -->
+      <a href="auth.html" class="account-btn" id="auth-btn">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M17.982 18.725A7.488 7.488 0 0012 15.75a7.488 7.488 0 00-5.982 2.975m11.963 0a9 9 0 10-11.963 0m11.963 0A8.966 8.966 0 0112 21a8.966 8.966 0 01-5.982-2.275" />
+        </svg>
+        Entrar
+      </a>
+    </div>
+  </header>
+
+  <!-- HERO -->
+  <section class="hero">
+    <div class="hero-left">
+      <div class="hero-tag reveal">
+        <span class="tag-dot"></span>
+        DESCOBERTA · FUTEBOL · CULTURA
+      </div>
+
+      <h1 class="hero-title reveal delay-1">
+        <span class="line">O FUTEBOL</span>
+        <span class="line accent-line">QUE VOCÊ</span>
+        <span class="line">NUNCA VIU.</span>
+      </h1>
+
+      <p class="hero-desc reveal delay-2">
+        Uma plataforma dedicada às camisolas, clubes, estádios e culturas futebolísticas menos conhecidas do planeta. Do Kosovo à Indonésia — descobre o que existe além dos holofotes.
+      </p>
+
+      <div class="hero-actions reveal delay-3">
+        <a href="#ligas" class="btn-primary">
+          Explorar Ligas
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" /></svg>
+        </a>
+        <a href="#clubes" class="btn-ghost">Descobrir Clubes</a>
+      </div>
+
+      <div class="hero-stats reveal delay-4">
+        <div class="stat">
+          <span class="stat-num">200+</span>
+          <span class="stat-label">Clubes</span>
+        </div>
+        <div class="stat-divider"></div>
+        <div class="stat">
+          <span class="stat-num">40+</span>
+          <span class="stat-label">Países</span>
+        </div>
+        <div class="stat-divider"></div>
+        <div class="stat">
+          <span class="stat-num">600+</span>
+          <span class="stat-label">Camisolas</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="hero-right reveal delay-2">
+      <div class="hero-image-wrap">
+        <img src="https://images.unsplash.com/photo-1577223625816-7546f13df25d?q=80&w=1200&auto=format&fit=crop" alt="Camisola Futebol" id="hero-featured-image">
+        <div class="image-badge">
+          <span class="badge-label">EM DESTAQUE</span>
+          <span class="badge-club" id="hero-featured-club">Clube em Destaque</span>
+          <span class="badge-country" id="hero-featured-country">Futebol Global</span>
+        </div>
+        <div class="image-tag-corner" id="hero-featured-league">Todas as ligas</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- TICKER -->
+  <div class="ticker-wrap">
+    <div class="ticker" id="club-ticker">
+      <span>Carregando clubes…</span>
+    </div>
+  </div>
+
+  <!-- FEATURES -->
+  <section class="features-section">
+    <div class="features-header">
+      <p class="section-eyebrow">PORQUE EXISTIMOS</p>
+      <h2 class="section-title">O futebol é mais<br><em>do que as grandes ligas.</em></h2>
+    </div>
+    <div class="features-grid">
+      <div class="feature-card">
+        <div class="feature-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z" /><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
+        </div>
+        <h3>Clubes Underground</h3>
+        <p>Explore equipas escondidas fora do mainstream. De divisões inferiores a ligas esquecidas, o futebol verdadeiro vive aqui.</p>
+        <div class="feature-num">01</div>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9.568 3H5.25A2.25 2.25 0 003 5.25v4.318c0 .597.237 1.17.659 1.591l9.581 9.581c.699.699 1.78.872 2.607.33a18.095 18.095 0 005.223-5.223c.542-.827.369-1.908-.33-2.607L11.16 3.66A2.25 2.25 0 009.568 3z" /><path stroke-linecap="round" stroke-linejoin="round" d="M6 6h.008v.008H6V6z" /></svg>
+        </div>
+        <h3>Camisolas Únicas</h3>
+        <p>Designs históricos, identidades autênticas e equipamentos que nunca viste nas lojas. A cultura de um clube contada através do tecido.</p>
+        <div class="feature-num">02</div>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6.042A8.967 8.967 0 006 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 016 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 016-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0018 18a8.966 8.966 0 00-6 2.292m0-14.25v14.25" /></svg>
+        </div>
+        <h3>Histórias Reais</h3>
+        <p>Conheça culturas, rivalidades locais e a paixão que move adeptos em cada canto do mundo. O futebol como janela para a identidade.</p>
+        <div class="feature-num">03</div>
+      </div>
+    </div>
+  </section>
+
+
+  <!-- CLUBES -->
+  <section id="clubes" class="section clubes-section">
+    <div class="section-header">
+      <div>
+        <p class="section-eyebrow">CLUBES</p>
+        <h2 class="section-title">Em Destaque</h2>
+      </div>
+      <a href="#" class="link-all">Ver todos os clubes →</a>
+    </div>
+
+    <div class="club-grid" id="clubes-container">
+      <div class="col-span-3 text-center py-10">
+        <p class="text-white/50">A carregar clubes...</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- RECOMENDAÇÕES -->
+  <section id="recomendacoes" class="section recomendacoes-section">
+    <div class="section-header">
+      <div>
+        <p class="section-eyebrow">PARA TI</p>
+        <h2 class="section-title">Clubes Recomendados</h2>
+      </div>
+    </div>
+    <p class="recom-desc">Com base nos clubes que exploráste, podes gostar destes:</p>
+    <div class="recom-logos-grid" id="recom-container">
+      <p class="text-white/40 text-sm">A gerar recomendações...</p>
+    </div>
+  </section>
+
+  <!-- SOBRE / CTA -->
+  <section id="sobre" class="cta-section">
+    <div class="cta-inner">
+      <div class="cta-left">
+        <p class="section-eyebrow">O PROJETO</p>
+        <h2>Fora do Radar<br>nasce da paixão<br>pelo futebol <em>real.</em></h2>
+        <p class="cta-desc">Criado como projeto de final de curso, o Fora do Radar é uma plataforma de descoberta dedicada a clubes, camisolas e culturas futebolísticas que raramente aparecem nos grandes meios. Porque o futebol é muito mais do que aquilo que passa na televisão.</p>
+        <div class="cta-actions">
+          <a href="#clubes" class="btn-primary">Começar a explorar</a>
+        </div>
+      </div>
+      <div class="cta-right">
+        <div class="cta-grid">
+          <div class="cta-img-card tall">
+            <img src="https://images.unsplash.com/photo-1508098682722-e99c643e7485?q=80&w=600&auto=format&fit=crop" alt="Futebol">
+          </div>
+          <div class="cta-img-card">
+            <img src="https://images.unsplash.com/photo-1574629810360-7efbbe195018?q=80&w=600&auto=format&fit=crop" alt="Adepto">
+          </div>
+          <div class="cta-img-card">
+            <img src="https://images.unsplash.com/photo-1486286701208-1d58e9338013?q=80&w=600&auto=format&fit=crop" alt="Camisola">
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- FOOTER -->
+  <footer id="contacto">
+    <div class="footer-top">
+      <div class="footer-brand">
+        <div class="footer-logo">
+          <div class="radar-wrap small">
+            <div class="radar-ring r1"></div>
+            <div class="radar-ring r2"></div>
+            <div class="radar-dot"></div>
+            <div class="radar-sweep"></div>
+          </div>
+          <div class="logo-text">
+            <span class="logo-top">FORA DO</span>
+            <span class="logo-bottom">RADAR</span>
+          </div>
+        </div>
+        <p>O futebol que vive fora do mainstream. Desde 2026.</p>
+      </div>
+
+      <div class="footer-links">
+        <div class="footer-col">
+          <h4>Explorar</h4>
+          <a href="#">Ligas</a>
+          <a href="#">Clubes</a>
+          <a href="#">Camisolas</a>
+          <a href="#">Países</a>
+        </div>
+        <div class="footer-col">
+          <h4>Projeto</h4>
+          <a href="#">Sobre</a>
+          <a href="#">Objetivos</a>
+          <a href="#">Contacto</a>
+        </div>
+        <div class="footer-col">
+          <h4>Conta</h4>
+          <a href="#">Entrar</a>
+          <a href="#">Registar</a>
+          <a href="#">Favoritos</a>
+        </div>
+      </div>
+    </div>
+
+    <div class="footer-bottom">
+      <p>© 2026 Fora do Radar · Projeto PAP</p>
+      <p>Feito com ♥ para o futebol escondido do mundo</p>
+    </div>
+  </footer>
+
+  <script type="module" src="supabase.js"></script>
+  <script type="module">
+    import { initAuthHeader, carregarClubesDestaque, getClubes } from './supabase.js'
+
+    // ── SISTEMA DE RECOMENDAÇÃO ──────────────────────────────
+    // Usa o histórico de clubes vistos (localStorage) para recomendar
+    // Mostra apenas os logos (escudo) dos clubes recomendados
+
+    async function carregarRecomendacoes() {
+      const container = document.getElementById('recom-container')
+      if (!container) return
+
+      try {
+        // Histórico guardado como array de IDs em localStorage
+        const historico = JSON.parse(localStorage.getItem('clubes_vistos') || '[]')
+        const todosClubes = await getClubes()
+        if (!todosClubes || todosClubes.length === 0) {
+          container.innerHTML = '<p class="text-white/30 text-sm">Sem clubes disponíveis.</p>'
+          return
+        }
+
+        let recomendados = []
+
+        if (historico.length === 0) {
+          // Sem histórico → mostra 6 aleatórios
+          const shuffled = [...todosClubes].sort(() => Math.random() - 0.5)
+          recomendados = shuffled.slice(0, 6)
+        } else {
+          // Com histórico → encontra ligas dos clubes vistos e recomenda clubes da mesma liga que ainda não foram vistos
+          const vistoIds = new Set(historico.map(Number))
+          const visitados = todosClubes.filter(c => vistoIds.has(c.id))
+          const ligasVistas = new Set(visitados.map(c => c.liga_id).filter(Boolean))
+
+          // Clubes da mesma liga que não foram vistos
+          const mesmliga = todosClubes.filter(c => ligasVistas.has(c.liga_id) && !vistoIds.has(c.id))
+          // Preenche com aleatórios se necessário
+          const outros = todosClubes.filter(c => !vistoIds.has(c.id) && !ligasVistas.has(c.liga_id))
+            .sort(() => Math.random() - 0.5)
+
+          recomendados = [...mesmliga, ...outros].slice(0, 6)
+          if (recomendados.length === 0) {
+            // Todos já foram vistos → mostra aleatórios
+            recomendados = [...todosClubes].sort(() => Math.random() - 0.5).slice(0, 6)
+          }
+        }
+
+        // Renderiza APENAS logos
+        container.innerHTML = recomendados.map(clube => `
+          <a href="clube.html?clube=${clube.id}" class="recom-logo-item" title="${clube.nome}">
+            <div class="recom-logo-wrap">
+              <img
+                src="${clube.escudo_url || ''}"
+                alt="${clube.nome}"
+                loading="lazy"
+                onerror="this.style.display='none';this.nextElementSibling.style.display='flex'"
+              />
+              <span class="recom-logo-fallback" style="display:none">${clube.nome.slice(0, 2).toUpperCase()}</span>
+            </div>
+            <span class="recom-logo-name">${clube.nome}</span>
+          </a>
+        `).join('')
+
+      } catch (err) {
+        console.error('Erro nas recomendações:', err)
+        container.innerHTML = '<p class="text-white/30 text-sm">Não foi possível carregar recomendações.</p>'
+      }
+    }
+
+    // Aguarda o DOM
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', async () => {
+        await initAuthHeader()
+        await carregarClubesDestaque()
+        await carregarRecomendacoes()
+      })
+    } else {
+      initAuthHeader()
+      carregarClubesDestaque()
+      carregarRecomendacoes()
+    }
+  </script>
+  <script type="module" src="script.js"></script>
+</body>
+</html>

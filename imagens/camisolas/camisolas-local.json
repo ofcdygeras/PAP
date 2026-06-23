@@ -1,0 +1,142 @@
+[
+  {
+    "clube": "FC Porto",
+    "nome": "Camisola Principal 2025",
+    "tipo": "Home",
+    "epoca": "2025",
+    "imagem_url": "imagens/camisolas/Camisola_FC_Porto_Home_2025.jpg"
+  },
+  {
+    "clube": "FC Porto",
+    "nome": "Camisola Alternativa 2025",
+    "tipo": "Away",
+    "epoca": "2025",
+    "imagem_url": "imagens/camisolas/Camisola_FC_Porto_Away_2025.jpg"
+  },
+  {
+    "clube": "Sporting CP",
+    "nome": "Camisola Principal 2025",
+    "tipo": "Home",
+    "epoca": "2025",
+    "imagem_url": "imagens/camisolas/Camisola_Sporting_Home_2025.jpg"
+  },
+  {
+    "clube": "SL Benfica",
+    "nome": "Camisola Principal 2025",
+    "tipo": "Home",
+    "epoca": "2025",
+    "imagem_url": "imagens/camisolas/Camisola_SL_Benfica_Home_2025.jpg"
+  },
+  {
+    "clube": "SC Braga",
+    "nome": "Camisola Principal 2025",
+    "tipo": "Home",
+    "epoca": "2025",
+    "imagem_url": "imagens/camisolas/Camisola_SC_Braga_Home_2025.jpg"
+  },
+  {
+    "clube": "Vitória SC",
+    "nome": "Camisola Principal 2025",
+    "tipo": "Home",
+    "epoca": "2025",
+    "imagem_url": "imagens/camisolas/Camisola_Guimarães_Home_2025.jpg"
+  },
+  {
+    "clube": "AVS SAD",
+    "nome": "Camisola Principal 2025",
+    "tipo": "Home",
+    "epoca": "2025",
+    "imagem_url": "imagens/camisolas/Camisola_AVSSAD_home_2025.jpg"
+  },
+  {
+    "clube": "AVS SAD",
+    "nome": "Camisola Alternativa 2025",
+    "tipo": "Away",
+    "epoca": "2025",
+    "imagem_url": "imagens/camisolas/Camisola_AVSSAD_FORa_2025.jpg"
+  },
+  {
+    "clube": "CD Nacional",
+    "nome": "Camisola Principal 2025",
+    "tipo": "Home",
+    "epoca": "2025",
+    "imagem_url": "imagens/camisolas/Camisola_CDNACIONAL_Home_2025.jpg"
+  },
+  {
+    "clube": "CD Tondela",
+    "nome": "Camisola Principal 2025",
+    "tipo": "Home",
+    "epoca": "2025",
+    "imagem_url": "imagens/camisolas/Camisola_CDTONDELA_home_2025.jpg"
+  },
+  {
+    "clube": "Casa Pia",
+    "nome": "Camisola Principal 2025",
+    "tipo": "Home",
+    "epoca": "2025",
+    "imagem_url": "imagens/camisolas/Camisola_Casa_Pia_Home_2025.jpg"
+  },
+  {
+    "clube": "Casa Pia",
+    "nome": "Camisola Alternativa 2025",
+    "tipo": "Away",
+    "epoca": "2025",
+    "imagem_url": "imagens/camisolas/Camisola_Casa_Pia_Away_2025.jpg"
+  },
+  {
+    "clube": "Estoril Praia",
+    "nome": "Camisola Principal 2025",
+    "tipo": "Home",
+    "epoca": "2025",
+    "imagem_url": "imagens/camisolas/Camisola_Estoril_Praia_Home_2025.jpg"
+  },
+  {
+    "clube": "Estrela Amadora",
+    "nome": "Camisola Principal 2025",
+    "tipo": "Home",
+    "epoca": "2025",
+    "imagem_url": "imagens/camisolas/Camisola_Estrela_Amadora_Home_2025.jpg"
+  },
+  {
+    "clube": "FC Arouca",
+    "nome": "Camisola Principal 2025",
+    "tipo": "Home",
+    "epoca": "2025",
+    "imagem_url": "imagens/camisolas/Camisola_FC_Arouca_Home_2025.jpg"
+  },
+  {
+    "clube": "FC Famalicão",
+    "nome": "Camisola Principal 2025",
+    "tipo": "Home",
+    "epoca": "2025",
+    "imagem_url": "imagens/camisolas/Camisola_FC_Famalicão_Home_2025.jpg"
+  },
+  {
+    "clube": "Gil Vicente",
+    "nome": "Camisola Principal 2025",
+    "tipo": "Home",
+    "epoca": "2025",
+    "imagem_url": "imagens/camisolas/Camisola_Gil_Vicente_Home_2025.jpg"
+  },
+  {
+    "clube": "Rio Ave",
+    "nome": "Camisola Principal 2025",
+    "tipo": "Home",
+    "epoca": "2025",
+    "imagem_url": "imagens/camisolas/Camisola_Rio_Ave_Home_2025.jpg"
+  },
+  {
+    "clube": "Moreirense",
+    "nome": "Camisola Principal 2025",
+    "tipo": "Home",
+    "epoca": "2025",
+    "imagem_url": "imagens/camisolas/Camisola_Morreirens_Home_2025.jpg"
+  },
+  {
+    "clube": "Santa Clara",
+    "nome": "Camisola Principal 2025",
+    "tipo": "Home",
+    "epoca": "2025",
+    "imagem_url": "imagens/camisolas/Camisola_SantaClara_Home_2025.jpg"
+  }
+]

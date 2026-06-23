@@ -1,0 +1,450 @@
+<!DOCTYPE html>
+<html lang="pt-PT">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Ligas — Fora do Radar</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,700;1,300&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: { acid: '#b4ff00' },
+          fontFamily: {
+            display: ['"Bebas Neue"', 'sans-serif'],
+            body:    ['"DM Sans"', 'sans-serif'],
+            mono:    ['"Space Mono"', 'monospace'],
+          }
+        }
+      },
+      corePlugins: { preflight: false }
+    }
+  </script>
+  <link rel="stylesheet" href="style.css">
+
+  <style>
+    /* extras específicos desta página */
+    .liga-card { transition: border-color .3s, transform .3s; }
+    .liga-card:hover { transform: translateY(-5px); border-color: rgba(180,255,0,.35) !important; }
+    .liga-card:hover .card-shine { opacity: 1; }
+    .card-shine {
+      position: absolute; inset: 0; pointer-events: none; opacity: 0;
+      background: radial-gradient(circle at 60% 20%, rgba(180,255,0,.07), transparent 70%);
+      transition: opacity .3s;
+    }
+    .pais-btn.active {
+      background: #b4ff00 !important;
+      color: #000 !important;
+      border-color: #b4ff00 !important;
+    }
+    .skeleton {
+      background: linear-gradient(90deg, rgba(255,255,255,.04) 25%, rgba(255,255,255,.08) 50%, rgba(255,255,255,.04) 75%);
+      background-size: 200% 100%;
+      animation: shimmer 1.4s infinite;
+      border-radius: 16px;
+    }
+    @keyframes shimmer { from { background-position: 200% 0; } to { background-position: -200% 0; } }
+    .fade-in { animation: fadeIn .4s ease forwards; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
+  </style>
+</head>
+
+<body class="bg-[#060608] text-white font-body overflow-x-hidden">
+
+  <!-- NOISE -->
+  <div class="noise"></div>
+  <div class="bg-orb orb1"></div>
+  <div class="bg-orb orb2"></div>
+
+  <!-- HEADER -->
+  <header id="header" class="fixed top-0 left-0 w-full flex justify-between items-center px-[60px] py-[22px] bg-black/60 backdrop-blur-2xl border-b border-white/[0.07] z-[1000] transition-all duration-300">
+    <a href="index.html" class="logo flex items-center gap-[14px] no-underline">
+      <div class="radar-wrap"><div class="radar-ring r1"></div><div class="radar-ring r2"></div><div class="radar-dot"></div><div class="radar-sweep"></div></div>
+      <div class="logo-text flex flex-col leading-none">
+        <span class="font-mono text-[10px] tracking-[4px] text-white/50">FORA DO</span>
+        <span class="font-display text-[26px] tracking-[3px] text-white">RADAR</span>
+      </div>
+    </a>
+
+    <nav class="flex gap-9">
+      <a href="index.html" class="nav-link text-white/50 no-underline text-[13px] font-medium tracking-[1.5px] uppercase hover:text-acid transition-colors">Home</a>
+      <a href="ligas.html" class="nav-link text-acid no-underline text-[13px] font-medium tracking-[1.5px] uppercase border-b border-acid pb-1">Ligas</a>
+      <a href="index.html#sobre" class="nav-link text-white/50 no-underline text-[13px] font-medium tracking-[1.5px] uppercase hover:text-acid transition-colors">Sobre</a>
+    </nav>
+
+    <div class="flex items-center gap-3">
+      <a href="auth.html" id="auth-btn" class="account-btn flex items-center gap-2 px-5 py-[10px] rounded-full border border-white/[0.07] bg-white/[0.04] text-white text-[13px] font-medium no-underline hover:border-acid hover:text-acid transition-all">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-[17px]"><path stroke-linecap="round" stroke-linejoin="round" d="M17.982 18.725A7.488 7.488 0 0012 15.75a7.488 7.488 0 00-5.982 2.975m11.963 0a9 9 0 10-11.963 0m11.963 0A8.966 8.966 0 0112 21a8.966 8.966 0 01-5.982-2.275" /></svg>
+        Entrar
+      </a>
+    </div>
+  </header>
+
+  <!-- PAGE HERO -->
+  <section class="pt-[160px] pb-[80px] px-[80px] relative z-[1]">
+    <div class="max-w-[700px]">
+      <p class="font-mono text-[11px] tracking-[4px] text-acid mb-4 block">EXPLORE · DESCUBRA · FILTRE</p>
+      <h1 class="font-display text-[80px] leading-[.92] tracking-[2px] mb-6" id="page-title">
+        TODAS AS<br><span class="text-acid">LIGAS</span>
+      </h1>
+      <p class="text-white/50 text-[17px] leading-[1.8] max-w-[500px] mb-8" id="page-desc">
+        Navega por dezenas de ligas em todo o mundo. Filtra por país, divisão ou nome e descobre competições que nunca viste na televisão.
+      </p>
+      <!-- Barra de pesquisa -->
+      <div class="relative max-w-[480px]" id="search-bar">
+        <svg class="absolute left-4 top-1/2 -translate-y-1/2 w-4 text-white/30" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z"/></svg>
+        <input id="search-input" type="text" placeholder="Pesquisar liga ou país..."
+          class="w-full bg-white/[0.05] border border-white/[0.08] rounded-full pl-11 pr-5 py-4 text-white text-[14px] placeholder-white/30 outline-none focus:border-acid/50 transition-colors font-body" />
+      </div>
+    </div>
+  </section>
+
+  <!-- FILTROS POR PAÍS -->
+  <section class="px-[80px] mb-10 relative z-[1]">
+    <div id="paises-filter" class="flex flex-wrap gap-3">
+      <!-- Skeleton enquanto carrega -->
+      <div class="skeleton h-9 w-20"></div>
+      <div class="skeleton h-9 w-24"></div>
+      <div class="skeleton h-9 w-20"></div>
+      <div class="skeleton h-9 w-28"></div>
+    </div>
+  </section>
+
+  <!-- CONTAGEM -->
+  <div class="px-[80px] mb-6 relative z-[1]">
+    <p class="font-mono text-[12px] tracking-[2px] text-white/30" id="count-label">A carregar ligas...</p>
+  </div>
+
+  <!-- GRID DE LIGAS -->
+  <section class="px-[80px] pb-[120px] relative z-[1]">
+    <div id="ligas-grid" class="grid grid-cols-3 gap-6">
+      <!-- Skeletons -->
+      <div class="skeleton h-[220px]"></div>
+      <div class="skeleton h-[220px]"></div>
+      <div class="skeleton h-[220px]"></div>
+      <div class="skeleton h-[220px]"></div>
+      <div class="skeleton h-[220px]"></div>
+      <div class="skeleton h-[220px]"></div>
+    </div>
+
+    <!-- Estado vazio -->
+    <div id="empty-state" class="hidden text-center py-24">
+      <p class="font-display text-[60px] text-white/10 mb-4">NADA ENCONTRADO</p>
+      <p class="text-white/40 text-[15px]">Tenta outro termo de pesquisa ou país.</p>
+    </div>
+  </section>
+
+  <!-- FOOTER -->
+  <footer class="border-t border-white/[0.07] px-[80px] py-10 relative z-[1]">
+    <div class="flex justify-between items-center">
+      <p class="font-mono text-[12px] text-white/20 tracking-[2px]">© 2026 FORA DO RADAR · PROJETO PAP</p>
+      <p class="font-mono text-[12px] text-white/20">O futebol que vive fora do mainstream.</p>
+    </div>
+  </footer>
+
+  <script type="module">
+    import { supabase, getLigas, getPaises, initAuthHeader } from './supabase.js'
+
+    initAuthHeader()
+
+    // Scroll header
+    const header = document.getElementById('header')
+    window.addEventListener('scroll', () => {
+      header.style.background = window.scrollY > 60 ? 'rgba(6,6,8,0.95)' : 'rgba(6,6,8,0.6)'
+    }, { passive: true })
+
+    // Estado global
+    let todasLigas = []
+    let paisSelecionado = null
+    let termoPesquisa = ''
+
+    // ── RENDER ──────────────────────────────────────────────
+    function renderLigas(lista) {
+      const grid = document.getElementById('ligas-grid')
+      const empty = document.getElementById('empty-state')
+      const count = document.getElementById('count-label')
+
+      if (lista.length === 0) {
+        grid.innerHTML = ''
+        empty.classList.remove('hidden')
+        count.textContent = '0 ligas encontradas'
+        return
+      }
+
+      empty.classList.add('hidden')
+      count.textContent = `${lista.length} liga${lista.length !== 1 ? 's' : ''} encontrada${lista.length !== 1 ? 's' : ''}`
+
+      grid.innerHTML = lista.map((liga, i) => {
+        const pais = liga.paises
+        const flagMap = { PT: '🇵🇹', FI: '🇫🇮', ID: '🇮🇩', ES: '🇪🇸', DE: '🇩🇪', FR: '🇫🇷', IT: '🇮🇹', GB: '🏴󠁧󠁢󠁥󠁮󠁧󠁿', BR: '🇧🇷', AR: '🇦🇷', JP: '🇯🇵', KR: '🇰🇷', US: '🇺🇸', XK: '🇽🇰', IN: '🇮🇳', CZ: '🇨🇿' }
+        const flag = pais ? (flagMap[pais.codigo] || '🌍') : '🌍'
+        const paisNome = pais ? pais.nome : '—'
+
+        const divColors = [
+          'from-emerald-900/30', 'from-blue-900/30', 'from-purple-900/30',
+          'from-orange-900/30', 'from-rose-900/30', 'from-cyan-900/30'
+        ]
+        const colorClass = divColors[i % divColors.length]
+
+        return `
+          <div class="liga-card relative bg-white/[0.04] border border-white/[0.07] rounded-[22px] p-8 cursor-pointer overflow-hidden fade-in"
+               style="animation-delay: ${i * 0.05}s"
+               onclick="window.location.href='ligas.html?liga=${liga.id}'">
+            <div class="card-shine"></div>
+            <div class="absolute inset-0 bg-gradient-to-br ${colorClass} to-transparent opacity-40 pointer-events-none rounded-[22px]"></div>
+
+            <!-- Cabeçalho -->
+            <div class="flex justify-between items-start mb-6 relative z-10">
+              <span class="inline-flex items-center gap-2 font-mono text-[11px] tracking-[1px] text-white/50 bg-black/40 border border-white/[0.07] rounded-full px-3 py-1 backdrop-blur">
+                ${flag} ${paisNome}
+              </span>
+              <span class="font-mono text-[11px] tracking-[1px] text-acid bg-acid/10 border border-acid/20 rounded-full px-3 py-1">
+                ${liga.divisao || '—'}
+              </span>
+            </div>
+
+            <!-- Nome -->
+            <h3 class="font-display text-[38px] leading-[1] tracking-[1px] mb-3 relative z-10">${liga.nome}</h3>
+
+            <!-- Footer card -->
+            <div class="flex items-center justify-between mt-6 pt-5 border-t border-white/[0.06] relative z-10">
+              <span class="text-white/30 text-[13px]">Ver clubes da liga</span>
+              <span class="text-acid text-[18px] group-hover:translate-x-1 transition-transform">→</span>
+            </div>
+          </div>
+        `
+      }).join('')
+    }
+
+    // ── FILTRAR ─────────────────────────────────────────────
+    function filtrar() {
+      let resultado = [...todasLigas]
+
+      if (paisSelecionado) {
+        resultado = resultado.filter(l => l.pais_id === paisSelecionado)
+      }
+
+      if (termoPesquisa.trim()) {
+        const q = termoPesquisa.toLowerCase()
+        resultado = resultado.filter(l =>
+          l.nome.toLowerCase().includes(q) ||
+          (l.paises?.nome || '').toLowerCase().includes(q) ||
+          (l.divisao || '').toLowerCase().includes(q)
+        )
+      }
+
+      renderLigas(resultado)
+    }
+
+    // ── CARREGAR PAÍSES (filtros) ────────────────────────────
+    async function carregarPaises(ligas) {
+      const paisesContainer = document.getElementById('paises-filter')
+
+      // Extrair países únicos das ligas
+      const paisesMap = {}
+      ligas.forEach(l => {
+        if (l.paises) paisesMap[l.pais_id] = l.paises
+      })
+      const paises = Object.entries(paisesMap)
+
+      const flagMap = { PT: '🇵🇹', FI: '🇫🇮', ID: '🇮🇩', ES: '🇪🇸', DE: '🇩🇪', FR: '🇫🇷', IT: '🇮🇹', GB: '🏴󠁧󠁢󠁥󠁮󠁧󠁿', BR: '🇧🇷', AR: '🇦🇷', JP: '🇯🇵', KR: '🇰🇷', US: '🇺🇸', XK: '🇽🇰', IN: '🇮🇳', CZ: '🇨🇿' }
+
+      paisesContainer.innerHTML = `
+        <button class="pais-btn active font-mono text-[12px] tracking-[1px] px-4 py-2 rounded-full border border-white/[0.1] bg-white/[0.04] text-white/70 hover:border-acid/40 transition-all cursor-pointer"
+                data-id="">Todos</button>
+        ${paises.map(([id, p]) => `
+          <button class="pais-btn font-mono text-[12px] tracking-[1px] px-4 py-2 rounded-full border border-white/[0.07] bg-white/[0.03] text-white/50 hover:border-acid/40 hover:text-white transition-all cursor-pointer"
+                  data-id="${id}">${flagMap[p.codigo] || '🌍'} ${p.nome}</button>
+        `).join('')}
+      `
+
+      paisesContainer.querySelectorAll('.pais-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          paisesContainer.querySelectorAll('.pais-btn').forEach(b => b.classList.remove('active'))
+          btn.classList.add('active')
+          paisSelecionado = btn.dataset.id ? parseInt(btn.dataset.id) : null
+          filtrar()
+        })
+      })
+    }
+
+    // ── INIT ─────────────────────────────────────────────────
+    async function init() {
+      try {
+        // Verifica se há um parâmetro 'liga' na URL
+        const params = new URLSearchParams(window.location.search)
+        const ligaId = params.get('liga')
+
+        console.log('🚀 Init - URL params:', { ligaId })
+
+        if (ligaId) {
+          // Se há uma liga selecionada, mostrar clubes dessa liga
+          console.log('📍 Detectada liga na URL:', ligaId)
+          await carregarClubesDaLiga(parseInt(ligaId))
+        } else {
+          // Caso contrário, mostrar lista de ligas
+          console.log('📍 Sem liga na URL - mostrando ligas')
+          todasLigas = await getLigas()
+          await carregarPaises(todasLigas)
+          renderLigas(todasLigas)
+        }
+      } catch (err) {
+        console.error('❌ Erro na init:', err)
+        document.getElementById('ligas-grid').innerHTML = `
+          <div class="col-span-3 text-center py-20">
+            <p class="font-display text-[50px] text-white/10 mb-3">ERRO AO CARREGAR</p>
+            <p class="text-white/40 text-[14px] font-mono">${err.message}</p>
+            <p class="text-white/25 text-[12px] font-mono mt-2">Verifica as credenciais do Supabase em supabase.js</p>
+          </div>
+        `
+        document.getElementById('count-label').textContent = 'Erro de ligação'
+      }
+    }
+
+    // ── CARREGAR CLUBES DE UMA LIGA ──────────────────────────
+    async function carregarClubesDaLiga(ligaId) {
+      try {
+        console.log('🔍 Carregando clubes da liga:', ligaId)
+
+        // Ocultar barra de pesquisa
+        const searchBar = document.getElementById('search-bar')
+        if (searchBar) searchBar.style.display = 'none'
+
+        // Buscar a liga
+        console.log('📚 Buscando info da liga...')
+        const ligas = await getLigas()
+        console.log('✅ Ligas carregadas:', ligas?.length)
+        
+        const liga = ligas.find(l => l.id === ligaId)
+        
+        if (!liga) {
+          console.error('❌ Liga não encontrada. ID procurado:', ligaId)
+          console.log('IDs disponíveis:', ligas.map(l => l.id))
+          throw new Error('Liga não encontrada')
+        }
+
+        console.log('✅ Liga encontrada:', liga.nome)
+
+        // Atualizar título
+        document.getElementById('page-title').innerHTML = `
+          CLUBES DE<br><span class="text-acid">${liga.nome.toUpperCase()}</span>
+        `
+        document.getElementById('page-desc').textContent = `
+          Todos os clubes que fazem parte da ${liga.nome}. ${liga.divisao ? `Divisão: ${liga.divisao}` : ''}
+        `
+
+        // Buscar clubes
+        console.log('🔄 Buscando clubes com liga_id:', ligaId)
+        const { data: clubes, error } = await supabase
+          .from('clubes')
+          .select('*')
+          .eq('liga_id', ligaId)
+          .order('nome')
+
+        if (error) {
+          console.error('❌ Erro na query:', error)
+          throw error
+        }
+
+        console.log('📊 Clubes encontrados:', clubes?.length || 0)
+        if (clubes && clubes.length > 0) {
+          console.log('📋 Exemplo de clube:', clubes[0])
+        }
+
+        // Renderizar clubes
+        const grid = document.getElementById('ligas-grid')
+        const count = document.getElementById('count-label')
+
+        if (!clubes || clubes.length === 0) {
+          console.warn('⚠️ Nenhum clube encontrado')
+          grid.innerHTML = ''
+          document.getElementById('empty-state').classList.remove('hidden')
+          count.textContent = '0 clubes encontrados'
+          return
+        }
+
+        document.getElementById('empty-state').classList.add('hidden')
+        count.textContent = `${clubes.length} clube${clubes.length !== 1 ? 's' : ''} encontrado${clubes.length !== 1 ? 's' : ''}`
+
+        grid.innerHTML = clubes.map((clube, i) => {
+          const divColors = [
+            'from-emerald-900/30', 'from-blue-900/30', 'from-purple-900/30',
+            'from-orange-900/30', 'from-rose-900/30', 'from-cyan-900/30'
+          ]
+          const colorClass = divColors[i % divColors.length]
+
+          return `
+            <div class="liga-card relative bg-white/[0.04] border border-white/[0.07] rounded-[22px] p-8 cursor-pointer overflow-hidden fade-in"
+                 style="animation-delay: ${i * 0.05}s"
+                 onclick="window.location.href='clube.html?clube=${clube.id}'">
+              <div class="card-shine"></div>
+              <div class="absolute inset-0 bg-gradient-to-br ${colorClass} to-transparent opacity-40 pointer-events-none rounded-[22px]"></div>
+
+              <!-- Imagem -->
+              <div class="escudo-box mb-6 relative z-10">
+                <img src="${clube.escudo_url || 'https://via.placeholder.com/400x160?text=' + encodeURIComponent(clube.nome)}" 
+                     alt="${clube.nome}">
+              </div>
+
+              <!-- Info -->
+              <div class="relative z-10">
+                <h3 class="font-display text-[32px] leading-[1] tracking-[1px] mb-2">${clube.nome}</h3>
+                <p class="text-white/50 text-[13px] mb-3">${clube.cidade || '—'}</p>
+                <p class="text-white/40 text-[14px] line-clamp-2 mb-4">${clube.descricao || 'Clube futebolístico'}</p>
+                
+                <div class="flex items-center justify-between pt-4 border-t border-white/[0.06]">
+                  <span class="text-white/30 text-[13px]">Fundado em ${clube.ano_fundacao || '—'}</span>
+                  <span class="text-acid text-[18px]">→</span>
+                </div>
+              </div>
+            </div>
+          `
+        }).join('')
+
+        console.log('✨ Clubes renderizados com sucesso!')
+
+        // Botão para voltar
+        const filterContainer = document.getElementById('paises-filter')
+        if (filterContainer) {
+          filterContainer.innerHTML = `
+            <a href="ligas.html" class="pais-btn font-mono text-[12px] tracking-[1px] px-4 py-2 rounded-full border border-white/[0.1] bg-white/[0.04] text-white/70 hover:border-acid/40 transition-all cursor-pointer inline-flex items-center gap-2 no-underline">
+              ← Voltar às Ligas
+            </a>
+          `
+        }
+
+      } catch (err) {
+        console.error('❌ Erro ao carregar clubes:', err)
+        document.getElementById('ligas-grid').innerHTML = `
+          <div class="col-span-3 text-center py-20">
+            <p class="font-display text-[50px] text-white/10 mb-3">ERRO AO CARREGAR CLUBES</p>
+            <p class="text-white/40 text-[14px] font-mono">${err.message}</p>
+            <a href="ligas.html" class="text-acid hover:text-white transition-colors inline-block mt-4 no-underline">← Voltar às Ligas</a>
+          </div>
+        `
+      }
+    }
+
+    // Pesquisa com debounce
+    let searchTimer
+    const searchInput = document.getElementById('search-input')
+    if (searchInput) {
+      searchInput.addEventListener('input', e => {
+        clearTimeout(searchTimer)
+        searchTimer = setTimeout(() => {
+          termoPesquisa = e.target.value
+          filtrar()
+        }, 280)
+      })
+    }
+
+    init()
+  </script>
+</body>
+</html>
