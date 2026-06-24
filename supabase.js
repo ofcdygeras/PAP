@@ -13,7 +13,12 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 const SUPABASE_URL      = 'https://wvuvgfyprxceyjyvalfq.supabase.co'   // ← substitui
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Ind2dXZnZnlwcnhjZXlqeXZhbGZxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkxMzk4MzgsImV4cCI6MjA5NDcxNTgzOH0.pUwsf5HnRwNlier22mpHrJ_0GPZwGuYYomorQKJAEWI'                 // ← substitui
 
-export const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
+export const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+  auth: {
+    persistSession: true,
+    autoRefreshToken: true,
+  },
+})
 
 // ── 2. AUTENTICAÇÃO ──────────────────────────────────────────
 
@@ -22,16 +27,19 @@ export const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
  * Cria conta em auth.users e insere perfil em public.utilizadores.
  */
 export async function registar({ username, email, password }) {
-  // 2a. Criar conta no Supabase Auth
-  const { data, error } = await supabase.auth.signUp({ email, password })
+  // 2a. Criar conta no Supabase Auth.
+  // O trigger `on_auth_user_created` no Supabase já cria o perfil em `utilizadores`.
+  const { data, error } = await supabase.auth.signUp({
+    email,
+    password,
+    options: {
+      data: {
+        username,
+      },
+    },
+  })
   if (error) throw error
 
-  // 2b. Inserir perfil na tabela utilizadores
-  const { error: profileError } = await supabase
-    .from('utilizadores')
-    .insert([{ id: data.user.id, username, email }])
-
-  if (profileError) throw profileError
   return data
 }
 
@@ -56,8 +64,23 @@ export async function logout() {
  * Retorna o utilizador autenticado (ou null).
  */
 export async function getUser() {
-  const { data: { user } } = await supabase.auth.getUser()
-  return user
+  const { data: { user }, error } = await supabase.auth.getUser()
+  if (error) {
+    console.warn('getUser error:', error)
+  }
+
+  if (user) return user
+
+  const {
+    data: { session },
+    error: sessionError,
+  } = await supabase.auth.getSession()
+
+  if (sessionError) {
+    console.warn('getSession error:', sessionError)
+  }
+
+  return session?.user ?? null
 }
 
 /**
@@ -66,12 +89,20 @@ export async function getUser() {
 export async function getPerfil() {
   const user = await getUser()
   if (!user) return null
+
   const { data, error } = await supabase
     .from('utilizadores')
     .select('*')
     .eq('id', user.id)
     .single()
-  if (error) throw error
+
+  if (error) {
+    return {
+      username: user.email?.split('@')[0] || 'Conta',
+      email: user.email,
+      id: user.id,
+    }
+  }
   return data
 }
 
@@ -79,24 +110,72 @@ export async function getPerfil() {
 
 /** Lista todos os países. */
 export async function getPaises() {
-  const { data, error } = await supabase
-    .from('paises')
-    .select('*')
-    .order('nome')
-  if (error) throw error
-  return data
+  // Tenta carregar do Supabase; se falhar ou devolver poucos itens,
+  // faz fallback para um ficheiro local `supabase/seed/paises.json`.
+  let queryError = null
+  try {
+    const { data, error } = await supabase
+      .from('paises')
+      .select('*')
+      .order('nome')
+
+    if (!error && Array.isArray(data) && data.length >= 5) {
+      return data
+    }
+    if (error) queryError = error
+    // se data for muito pequeno (p.ex. apenas 3), considera fallback
+  } catch (err) {
+    queryError = err
+  }
+
+  try {
+    const resp = await fetch('/supabase/seed/paises.json')
+    if (!resp.ok) throw new Error('Falha ao carregar seed local')
+    const local = await resp.json()
+    console.warn('Usando seed local de /supabase/seed/paises.json')
+    return local
+  } catch (localErr) {
+    console.error('Erro ao carregar seed local:', localErr)
+    // Se houver um erro de query original, lança esse; caso contrário lança o localErr
+    if (queryError) throw queryError
+    throw localErr
+  }
 }
 
 // ── 4. LIGAS ─────────────────────────────────────────────────
 
 /** Lista todas as ligas, com info do país. */
 export async function getLigas() {
-  const { data, error } = await supabase
-    .from('ligas')
-    .select(`*, paises(nome, codigo, bandeira_url)`)
-    .order('nome')
-  if (error) throw error
-  return data
+  // Tenta carregar ligas do Supabase; se falhar ou devolver poucos itens,
+  // faz fallback para `supabase/seed/ligas.json`.
+  let queryError = null
+  try {
+    const { data, error } = await supabase
+      .from('ligas')
+      .select(`*, paises(nome, codigo, bandeira_url)`)
+      .order('nome')
+
+    if (!error && Array.isArray(data) && data.length >= 5) {
+      return data
+    }
+    if (error) queryError = error
+  } catch (err) {
+    queryError = err
+  }
+
+  try {
+    const resp = await fetch('/supabase/seed/ligas.json')
+    if (!resp.ok) throw new Error('Falha ao carregar ligas locais')
+    const local = await resp.json()
+    // O ficheiro local não inclui a chave `paises` embutida; carregar países e associar
+    const paises = await getPaises()
+    const paisMap = Object.fromEntries((paises || []).map(p => [p.id, p]))
+    return local.map(l => ({ ...l, paises: paisMap[l.pais_id] || null }))
+  } catch (localErr) {
+    console.error('Erro ao carregar ligas locais:', localErr)
+    if (queryError) throw queryError
+    throw localErr
+  }
 }
 
 /** Lista ligas de um país específico. */
@@ -125,39 +204,67 @@ export async function getLiga(id) {
 
 /** Lista todos os clubes, com liga e país. */
 export async function getClubes() {
+  // Tenta carregar clubes do Supabase; se falhar, faz fallback para `supabase/seed/clubes.json`.
+  let queryError = null
   try {
     console.log('🔄 Buscando clubes da API...')
     const { data, error } = await supabase
       .from('clubes')
       .select(`*, ligas(nome, paises(nome, codigo))`)
       .order('nome')
-    
-    if (error) {
-      console.error('❌ Erro na query:', error)
-      throw error
+
+    if (!error && Array.isArray(data) && data.length >= 5) {
+      console.log('✅ Clubes recebidos:', data.length)
+      return data
     }
-    
-    console.log('✅ Clubes recebidos:', data?.length || 0)
-    if (data && data.length > 0) {
-      console.log('📋 Exemplo de clube:', data[0])
-    }
-    
-    return data
-  } catch (error) {
-    console.error('💥 Erro ao buscar clubes:', error.message)
-    throw error
+    if (error) queryError = error
+  } catch (err) {
+    queryError = err
+  }
+
+  try {
+    const resp = await fetch('/supabase/seed/clubes.json')
+    if (!resp.ok) throw new Error('Falha ao carregar clubes locais')
+    const local = await resp.json()
+    // Anexar info de liga e país a cada clube para compatibilidade com o frontend
+    const ligas = await getLigas()
+    const ligaMap = Object.fromEntries((ligas || []).map(l => [l.id, l]))
+    const clubesWithLigas = local.map(c => ({ ...c, ligas: ligaMap[c.liga_id] || null }))
+    console.warn('Usando clubes locais de /supabase/seed/clubes.json')
+    return clubesWithLigas
+  } catch (localErr) {
+    console.error('Erro ao carregar clubes locais:', localErr)
+    if (queryError) throw queryError
+    throw localErr
   }
 }
 
 /** Clubes de uma liga específica. */
 export async function getClubesPorLiga(ligaId) {
-  const { data, error } = await supabase
-    .from('clubes')
-    .select(`*`)
-    .eq('liga_id', ligaId)
-    .order('nome')
-  if (error) throw error
-  return data
+  let queryError = null
+  try {
+    const { data, error } = await supabase
+      .from('clubes')
+      .select(`*`)
+      .eq('liga_id', ligaId)
+      .order('nome')
+    if (!error && Array.isArray(data)) {
+      return data
+    }
+    if (error) queryError = error
+  } catch (err) {
+    queryError = err
+  }
+
+  try {
+    const resp = await fetch('/supabase/seed/clubes.json')
+    if (!resp.ok) throw new Error('Falha ao carregar clubes locais')
+    const local = await resp.json()
+    return local.filter(clube => clube.liga_id === ligaId)
+  } catch (localErr) {
+    if (queryError) throw queryError
+    throw localErr
+  }
 }
 
 /** Detalhes completos de um clube (com liga e país). */
@@ -274,23 +381,32 @@ export async function getHistorias(clubeId) {
  * Chama esta função em cada página após importar este módulo.
  */
 export async function initAuthHeader() {
-  const btn = document.getElementById('auth-btn')
-  if (!btn) return
+  const authBtn = document.getElementById('auth-btn')
+  const profileBtn = document.getElementById('profile-btn')
+  if (!authBtn) return
 
   const user = await getUser()
+  authBtn.onclick = null
+  authBtn.classList.remove('logged-in')
+
+  if (profileBtn) {
+    profileBtn.textContent = 'Minha área'
+    profileBtn.href = 'auth.html'
+  }
+
   if (user) {
     const perfil = await getPerfil()
-    btn.textContent = perfil?.username || 'Conta'
-    btn.href = '#'
-    btn.addEventListener('click', async (e) => {
-      e.preventDefault()
-      if (confirm('Tens a certeza que queres sair?')) {
-        await logout()
-        window.location.reload()
-      }
-    })
+    authBtn.textContent = perfil?.username || 'Conta'
+    authBtn.href = 'perfil.html'
+    authBtn.classList.add('logged-in')
+
+    if (profileBtn) {
+      profileBtn.href = 'perfil.html'
+    }
+  } else {
+    authBtn.textContent = 'Entrar'
+    authBtn.href = 'auth.html'
   }
-  // se não autenticado, btn já aponta para auth.html (default no HTML)
 }
 
 /**

@@ -1,0 +1,15 @@
+[
+  { "id": 1, "nome": "Portugal", "codigo": "PT", "bandeira_url": "https://flagcdn.com/w320/pt.png" },
+  { "id": 2, "nome": "Brasil", "codigo": "BR", "bandeira_url": "https://flagcdn.com/w320/br.png" },
+  { "id": 3, "nome": "Argentina", "codigo": "AR", "bandeira_url": "https://flagcdn.com/w320/ar.png" },
+  { "id": 4, "nome": "México", "codigo": "MX", "bandeira_url": "https://flagcdn.com/w320/mx.png" },
+  { "id": 5, "nome": "Espanha", "codigo": "ES", "bandeira_url": "https://flagcdn.com/w320/es.png" },
+  { "id": 6, "nome": "França", "codigo": "FR", "bandeira_url": "https://flagcdn.com/w320/fr.png" },
+  { "id": 7, "nome": "Alemanha", "codigo": "DE", "bandeira_url": "https://flagcdn.com/w320/de.png" },
+  { "id": 8, "nome": "Inglaterra", "codigo": "GB", "bandeira_url": "https://flagcdn.com/w320/gb.png" },
+  { "id": 9, "nome": "Estados Unidos", "codigo": "US", "bandeira_url": "https://flagcdn.com/w320/us.png" },
+  { "id": 10, "nome": "Japão", "codigo": "JP", "bandeira_url": "https://flagcdn.com/w320/jp.png" },
+  { "id": 11, "nome": "Coreia do Sul", "codigo": "KR", "bandeira_url": "https://flagcdn.com/w320/kr.png" },
+  { "id": 12, "nome": "Indonésia", "codigo": "ID", "bandeira_url": "https://flagcdn.com/w320/id.png" },
+  { "id": 13, "nome": "Finlândia", "codigo": "FI", "bandeira_url": "https://flagcdn.com/w320/fi.png" }
+]

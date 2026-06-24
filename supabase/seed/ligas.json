@@ -1,0 +1,15 @@
+[
+  { "id": 1, "nome": "Liga Portugal Betclic", "divisao": "1ª Divisão", "logo_url": "https://upload.wikimedia.org/wikipedia/commons/5/5c/Liga_Portugal_Betclic.png", "pais_id": 1 },
+  { "id": 2, "nome": "Brasileirão Série A", "divisao": "1ª Divisão", "logo_url": "https://upload.wikimedia.org/wikipedia/pt/7/75/Brasileirao_2024_logo.png", "pais_id": 2 },
+  { "id": 3, "nome": "Liga Profissional Argentina", "divisao": "1ª Divisão", "logo_url": "https://upload.wikimedia.org/wikipedia/commons/4/47/Liga_Profesional_de_Fútbol_logo.svg", "pais_id": 3 },
+  { "id": 4, "nome": "Liga MX", "divisao": "1ª Divisão", "logo_url": "https://upload.wikimedia.org/wikipedia/en/7/71/Liga_MX_logo.svg", "pais_id": 4 },
+  { "id": 5, "nome": "La Liga", "divisao": "1ª Divisão", "logo_url": "https://upload.wikimedia.org/wikipedia/commons/5/54/LaLiga_EA_Sports_2023_Vertical_Logo.svg", "pais_id": 5 },
+  { "id": 6, "nome": "Ligue 1", "divisao": "1ª Divisão", "logo_url": "https://upload.wikimedia.org/wikipedia/en/9/94/Ligue_1_Uber_Eats_logo.png", "pais_id": 6 },
+  { "id": 7, "nome": "Bundesliga", "divisao": "1ª Divisão", "logo_url": "https://upload.wikimedia.org/wikipedia/en/d/df/Bundesliga_logo_%282017%29.svg", "pais_id": 7 },
+  { "id": 8, "nome": "Premier League", "divisao": "1ª Divisão", "logo_url": "https://upload.wikimedia.org/wikipedia/en/f/f2/Premier_League_Logo.svg", "pais_id": 8 },
+  { "id": 9, "nome": "Major League Soccer", "divisao": "1ª Divisão", "logo_url": "https://upload.wikimedia.org/wikipedia/en/6/67/Major_League_Soccer_logo.svg", "pais_id": 9 },
+  { "id": 10, "nome": "J1 League", "divisao": "1ª Divisão", "logo_url": "https://upload.wikimedia.org/wikipedia/en/7/73/J.League_logo.svg", "pais_id": 10 },
+  { "id": 11, "nome": "K League 1", "divisao": "1ª Divisão", "logo_url": "https://upload.wikimedia.org/wikipedia/en/d/d8/K_League_1_logo.svg", "pais_id": 11 },
+  { "id": 12, "nome": "Liga 1 Indonésia", "divisao": "1ª Divisão", "logo_url": "https://upload.wikimedia.org/wikipedia/en/4/47/Liga_1_Indonesia_logo.svg", "pais_id": 12 },
+  { "id": 13, "nome": "Veikkausliiga", "divisao": "1ª Divisão", "logo_url": "https://upload.wikimedia.org/wikipedia/en/2/2e/Veikkausliiga_logo.svg", "pais_id": 13 }
+]

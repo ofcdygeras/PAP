@@ -8,9 +8,6 @@
 
 INSERT INTO paises (nome, codigo, bandeira_url) VALUES
 
--- Portugal
-('Portugal', 'PT', 'https://flagcdn.com/w320/pt.png'),
-
 -- Brasil
 ('Brasil', 'BR', 'https://flagcdn.com/w320/br.png'),
 
@@ -20,17 +17,11 @@ INSERT INTO paises (nome, codigo, bandeira_url) VALUES
 -- México
 ('México', 'MX', 'https://flagcdn.com/w320/mx.png'),
 
--- Espanha
-('Espanha', 'ES', 'https://flagcdn.com/w320/es.png'),
-
 -- França
 ('França', 'FR', 'https://flagcdn.com/w320/fr.png'),
 
 -- Alemanha
 ('Alemanha', 'DE', 'https://flagcdn.com/w320/de.png'),
-
--- Inglaterra
-('Inglaterra', 'GB', 'https://flagcdn.com/w320/gb.png'),
 
 -- Estados Unidos
 ('Estados Unidos', 'US', 'https://flagcdn.com/w320/us.png'),

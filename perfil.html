@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="pt-PT">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Perfil — Fora do Radar</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,700;1,300&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="noise"></div>
+  <div class="bg-orb orb1"></div>
+  <div class="bg-orb orb2"></div>
+  <div class="bg-orb orb3"></div>
+
+  <header id="header">
+    <div class="logo">
+      <div class="radar-wrap">
+        <div class="radar-ring r1"></div>
+        <div class="radar-ring r2"></div>
+        <div class="radar-dot"></div>
+        <div class="radar-sweep"></div>
+      </div>
+      <div class="logo-text">
+        <span class="logo-top">FORA DO</span>
+        <span class="logo-bottom">RADAR</span>
+      </div>
+    </div>
+    <nav>
+      <a href="index.html">Home</a>
+      <a href="paises.html">Países</a>
+      <a href="ligas.html">Ligas</a>
+    </nav>
+    <div class="header-right">
+      <button class="search-btn">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />
+        </svg>
+      </button>
+      <a href="auth.html" class="profile-link-btn" id="profile-btn">Minha área</a>
+      <a href="auth.html" class="account-btn" id="auth-btn">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M17.982 18.725A7.488 7.488 0 0012 15.75a7.488 7.488 0 00-5.982 2.975m11.963 0a9 9 0 10-11.963 0m11.963 0A8.966 8.966 0 0112 21a8.966 8.966 0 01-5.982-2.275" />
+        </svg>
+        Entrar
+      </a>
+    </div>
+  </header>
+
+  <main class="profile-page">
+    <div class="profile-card" id="profile-card">
+      <h1>Área de Utilizador</h1>
+      <div class="profile-field">
+        <span class="profile-field-label">Username</span>
+        <span class="profile-field-value" id="profile-username">—</span>
+      </div>
+      <div class="profile-field">
+        <span class="profile-field-label">Email</span>
+        <span class="profile-field-value" id="profile-email">—</span>
+      </div>
+      <div class="profile-field">
+        <span class="profile-field-label">ID do utilizador</span>
+        <span class="profile-field-value" id="profile-id">—</span>
+      </div>
+      <button class="logout-btn" id="logout-btn">Terminar sessão</button>
+    </div>
+  </main>
+
+  <script type="module">
+    import { getUser, getPerfil, logout, initAuthHeader } from './supabase.js'
+
+    async function carregarPerfil() {
+      const user = await getUser()
+      if (!user) {
+        window.location.href = 'auth.html'
+        return
+      }
+
+      await initAuthHeader()
+      const perfil = await getPerfil()
+      document.getElementById('profile-username').textContent = perfil?.username || 'Sem username'
+      document.getElementById('profile-email').textContent = perfil?.email || user.email || 'Sem email'
+      document.getElementById('profile-id').textContent = user.id
+    }
+
+    document.getElementById('logout-btn').addEventListener('click', async () => {
+      if (!confirm('Tens a certeza que queres terminar sessão?')) return
+      await logout()
+      window.location.href = 'auth.html'
+    })
+
+    carregarPerfil()
+  </script>
+</body>
+</html>
