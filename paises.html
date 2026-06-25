@@ -147,7 +147,7 @@
   </footer>
 
   <script type="module">
-    import { supabase, getPaises, initAuthHeader } from './supabase.js'
+    import { supabase, initAuthHeader } from './supabase.js'
 
     initAuthHeader()
 
@@ -164,11 +164,7 @@
       ID: '🇮🇩', FI: '🇫🇮', XK: '🇽🇰', IN: '🇮🇳', CZ: '🇨🇿', NL: '🇳🇱',
       BE: '🇧🇪', CH: '🇨🇭', AT: '🇦🇹', PL: '🇵🇱', TR: '🇹🇷', EG: '🇪🇬',
       NG: '🇳🇬', ZA: '🇿🇦', AU: '🇦🇺', CA: '🇨🇦', CO: '🇨🇴', CL: '🇨🇱',
-      PE: '🇵🇪', UY: '🇺🇾', CR: '🇨🇷', HN: '🇭🇳', SV: '🇸🇻', JM: '🇯🇲',
-      MA: '🇲🇦', TN: '🇹🇳', DZ: '🇩🇿', SN: '🇸🇳', GH: '🇬🇭', CM: '🇨🇲',
-      IR: '🇮🇷', SA: '🇸🇦', QA: '🇶🇦', AE: '🇦🇪', TH: '🇹🇭', VN: '🇻🇳',
-      MY: '🇲🇾', PH: '🇵🇭', CN: '🇨🇳', RU: '🇷🇺', UA: '🇺🇦', SE: '🇸🇪',
-      NO: '🇳🇴', DK: '🇩🇰', PT: '🇵🇹'
+      PE: '🇵🇪', UY: '🇺🇾', CR: '🇨🇷', HN: '🇭🇳', SV: '🇸🇻', JM: '🇯🇲'
     }
 
     let todosPaises = []
@@ -176,6 +172,8 @@
 
     // ── RENDER ──────────────────────────────────────────────
     function renderPaises(lista) {
+      console.log(`🎨 Renderizando ${lista.length} países...`)
+
       const grid = document.getElementById('paises-grid')
       const empty = document.getElementById('empty-state')
       const count = document.getElementById('count-label')
@@ -216,6 +214,8 @@
           </div>
         `
       }).join('')
+
+      console.log('✅ Países renderizados com sucesso!')
     }
 
     // ── FILTRAR ─────────────────────────────────────────────
@@ -235,15 +235,40 @@
 
     // ── INIT ─────────────────────────────────────────────────
     async function init() {
+      console.log('🚀 Iniciando carregamento de países...')
+
       try {
-        todosPaises = await getPaises()
+        // Buscar países diretamente do Supabase
+        const { data, error } = await supabase
+          .from('paises')
+          .select('*')
+          .order('nome')
+
+        if (error) {
+          console.error('❌ Erro ao buscar países:', error)
+          throw error
+        }
+
+        console.log('📊 Países recebidos:', data)
+
+        if (!data || data.length === 0) {
+          console.warn('⚠️ Nenhum país encontrado')
+          document.getElementById('count-label').textContent = 'Nenhum país encontrado'
+          document.getElementById('empty-state').classList.remove('hidden')
+          document.getElementById('paises-grid').innerHTML = ''
+          return
+        }
+
+        todosPaises = data
         renderPaises(todosPaises)
+
       } catch (err) {
-        console.error('Erro ao carregar países:', err)
+        console.error('❌ Erro:', err)
         document.getElementById('paises-grid').innerHTML = `
           <div class="col-span-4 text-center py-20">
             <p class="font-display text-[50px] text-white/10 mb-3">ERRO AO CARREGAR</p>
-            <p class="text-white/40 text-[14px] font-mono">${err.message}</p>
+            <p class="text-white/40 text-[14px] font-mono">${err.message || err}</p>
+            <button onclick="location.reload()" class="mt-6 px-5 py-3 rounded-full bg-acid text-black text-[13px] font-semibold">Tentar novamente</button>
           </div>
         `
         document.getElementById('count-label').textContent = 'Erro de ligação'
