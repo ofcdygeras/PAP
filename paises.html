@@ -147,7 +147,7 @@
   </footer>
 
   <script type="module">
-    import { supabase, initAuthHeader } from './supabase.js'
+    import { getPaises, initAuthHeader } from './supabase.js'
 
     initAuthHeader()
 
@@ -238,20 +238,10 @@
       console.log('🚀 Iniciando carregamento de países...')
 
       try {
-        // Buscar países diretamente do Supabase
-        const { data, error } = await supabase
-          .from('paises')
-          .select('*')
-          .order('nome')
+        todosPaises = await getPaises()
+        console.log('📊 Países recebidos:', todosPaises)
 
-        if (error) {
-          console.error('❌ Erro ao buscar países:', error)
-          throw error
-        }
-
-        console.log('📊 Países recebidos:', data)
-
-        if (!data || data.length === 0) {
+        if (!todosPaises || todosPaises.length === 0) {
           console.warn('⚠️ Nenhum país encontrado')
           document.getElementById('count-label').textContent = 'Nenhum país encontrado'
           document.getElementById('empty-state').classList.remove('hidden')
@@ -259,7 +249,6 @@
           return
         }
 
-        todosPaises = data
         renderPaises(todosPaises)
 
       } catch (err) {

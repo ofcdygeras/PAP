@@ -293,7 +293,7 @@
 
         // Preenche dados do clube
         document.getElementById('clube-title').textContent = clube.nome
-        document.getElementById('clube-subtitle').textContent = clube.descricao || 'Detalhes do clube.'
+        document.getElementById('clube-subtitle').textContent = clube.ligas ? clube.ligas.nome : 'Detalhes do clube.'
         document.getElementById('clube-name').textContent = clube.nome
         document.getElementById('clube-liga').textContent = clube.ligas ? `Liga · ${clube.ligas.nome}` : 'Liga desconhecida'
         document.getElementById('clube-country').textContent = clube.ligas?.paises?.nome || ''

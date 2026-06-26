@@ -8,6 +8,7 @@
 // ============================================================
 
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
+import logoMapping from './imagens/logos-mapping.js'
 
 // ── 1. CONFIGURAÇÃO ──────────────────────────────────────────
 const SUPABASE_URL      = 'https://wvuvgfyprxceyjyvalfq.supabase.co'   // ← substitui
@@ -20,6 +21,70 @@ export const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
   },
 })
 
+function getLocalLogoMapping() {
+  return {
+    clubes: logoMapping?.clubes || {},
+    clubesPorNome: logoMapping?.clubesPorNome || {},
+    clubesPorLigaNome: logoMapping?.clubesPorLigaNome || {},
+  }
+}
+
+function slugify(text) {
+  if (!text) return ''
+  return text
+    .toString()
+    .normalize('NFD')
+    .replace(/\p{Diacritic}/gu, '')
+    .replace(/[^a-zA-Z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '')
+    .toLowerCase()
+}
+
+function getLogoPathForClub(clube, mapping) {
+  if (!clube || !mapping) return null
+
+  const nomeKey = slugify(clube.nome)
+  const byLigaNome = mapping.clubesPorLigaNome?.[`${clube.liga_id}:${nomeKey}`]
+  if (byLigaNome) return byLigaNome
+
+  const byNome = mapping.clubesPorNome?.[nomeKey]
+  if (byNome) return byNome
+
+  const byId = mapping.clubes?.[clube.id]
+  if (byId) return byId
+
+  return null
+}
+
+function applyLocalLogo(clube, mapping) {
+  if (!clube || !mapping) return clube
+  let pathLocal = getLogoPathForClub(clube, mapping)
+  if (!pathLocal) return clube
+
+  pathLocal = pathLocal.replace(/\\/g, '/')
+  pathLocal = pathLocal.replace(/^\.*\//, '')
+  if (!pathLocal.startsWith('./') && !pathLocal.startsWith('/') && !pathLocal.match(/^https?:\/\//i)) {
+    pathLocal = `./${pathLocal}`
+  }
+  pathLocal = encodeURI(pathLocal)
+  return { ...clube, escudo_url: pathLocal }
+}
+
+async function loadLocalClubes() {
+  const resp = await fetch('/supabase/seed/clubes.json')
+  if (!resp.ok) throw new Error('Falha ao carregar clubes locais')
+  return await resp.json()
+}
+
+function mergeClubesRemoteWithLocal(remoteClubes, localClubes) {
+  const clubesById = new Map(remoteClubes.map(clube => [String(clube.id), clube]))
+  for (const clube of localClubes) {
+    if (!clubesById.has(String(clube.id))) {
+      clubesById.set(String(clube.id), clube)
+    }
+  }
+  return Array.from(clubesById.values()).sort((a, b) => (a.nome || '').localeCompare(b.nome || ''))
+}
 // ── 2. AUTENTICAÇÃO ──────────────────────────────────────────
 
 /**
@@ -213,9 +278,12 @@ export async function getClubes() {
       .select(`*, ligas(nome, paises(nome, codigo))`)
       .order('nome')
 
-    if (!error && Array.isArray(data) && data.length >= 5) {
+    if (!error && Array.isArray(data)) {
       console.log('✅ Clubes recebidos:', data.length)
-      return data
+      const local = await loadLocalClubes()
+      const merged = mergeClubesRemoteWithLocal(data, local)
+      const localLogos = await getLocalLogoMapping()
+      return merged.map(clube => applyLocalLogo(clube, localLogos))
     }
     if (error) queryError = error
   } catch (err) {
@@ -226,12 +294,12 @@ export async function getClubes() {
     const resp = await fetch('/supabase/seed/clubes.json')
     if (!resp.ok) throw new Error('Falha ao carregar clubes locais')
     const local = await resp.json()
-    // Anexar info de liga e país a cada clube para compatibilidade com o frontend
     const ligas = await getLigas()
     const ligaMap = Object.fromEntries((ligas || []).map(l => [l.id, l]))
     const clubesWithLigas = local.map(c => ({ ...c, ligas: ligaMap[c.liga_id] || null }))
     console.warn('Usando clubes locais de /supabase/seed/clubes.json')
-    return clubesWithLigas
+    const localLogos = await getLocalLogoMapping()
+    return clubesWithLigas.map(clube => applyLocalLogo(clube, localLogos))
   } catch (localErr) {
     console.error('Erro ao carregar clubes locais:', localErr)
     if (queryError) throw queryError
@@ -248,8 +316,14 @@ export async function getClubesPorLiga(ligaId) {
       .select(`*`)
       .eq('liga_id', ligaId)
       .order('nome')
-    if (!error && Array.isArray(data)) {
-      return data
+
+    const local = await loadLocalClubes()
+    const localFiltered = local.filter(clube => String(clube.liga_id) === String(ligaId))
+    const localLogos = await getLocalLogoMapping()
+
+    if (!error && Array.isArray(data) && data.length > 0) {
+      const merged = mergeClubesRemoteWithLocal(data, localFiltered)
+      return merged.map(clube => applyLocalLogo(clube, localLogos))
     }
     if (error) queryError = error
   } catch (err) {
@@ -260,7 +334,9 @@ export async function getClubesPorLiga(ligaId) {
     const resp = await fetch('/supabase/seed/clubes.json')
     if (!resp.ok) throw new Error('Falha ao carregar clubes locais')
     const local = await resp.json()
-    return local.filter(clube => clube.liga_id === ligaId)
+    const clubesFiltered = local.filter(clube => String(clube.liga_id) === String(ligaId))
+    const localLogos = await getLocalLogoMapping()
+    return clubesFiltered.map(clube => applyLocalLogo(clube, localLogos))
   } catch (localErr) {
     if (queryError) throw queryError
     throw localErr
@@ -269,13 +345,39 @@ export async function getClubesPorLiga(ligaId) {
 
 /** Detalhes completos de um clube (com liga e país). */
 export async function getClube(id) {
-  const { data, error } = await supabase
-    .from('clubes')
-    .select(`*, ligas(nome, divisao, paises(nome, codigo))`)
-    .eq('id', id)
-    .single()
-  if (error) throw error
-  return data
+  let queryError = null
+  try {
+    const { data, error } = await supabase
+      .from('clubes')
+      .select(`*, ligas(nome, divisao, paises(nome, codigo))`)
+      .eq('id', id)
+      .single()
+
+    if (!error && data) {
+      const localLogos = await getLocalLogoMapping()
+      return applyLocalLogo(data, localLogos)
+    }
+
+    if (error) queryError = error
+  } catch (err) {
+    queryError = err
+  }
+
+  try {
+    const resp = await fetch('/supabase/seed/clubes.json')
+    if (!resp.ok) throw new Error('Falha ao carregar clubes locais')
+    const local = await resp.json()
+    const clube = local.find(c => c.id === id)
+    if (!clube) throw new Error('Clube não encontrado no seed local')
+    const ligas = await getLigas()
+    const ligaMap = Object.fromEntries((ligas || []).map(l => [l.id, l]))
+    const localLogos = await getLocalLogoMapping()
+
+    return applyLocalLogo({ ...clube, ligas: ligaMap[clube.liga_id] || null }, localLogos)
+  } catch (localErr) {
+    if (queryError) throw queryError
+    throw localErr
+  }
 }
 
 /** Pesquisa clubes por nome. */
